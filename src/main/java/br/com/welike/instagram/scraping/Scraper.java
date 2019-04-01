@@ -17,6 +17,8 @@ public class Scraper {
 
     private final String HOST_INSTAGRAM = "https://www.instagram.com/accounts/login/?source=auth_switcher";
 
+//    private final String INPUT_LOGIN = "//*/input[@name='username']";
+
     private final String INPUT_LOGIN = "//*[@id=\"react-root\"]/section/main/div/article/div/div[1]/div/form/div[2]/div/div[1]/input";
     private final String INPUT_PASSWORD = "//*[@id=\"react-root\"]/section/main/div/article/div/div[1]/div/form/div[3]/div/div[1]/input";
     private final String BUTTON_LOGIN = "//*[@id=\"react-root\"]/section/main/div/article/div/div[1]/div/form/div[4]/button";
@@ -99,9 +101,9 @@ public class Scraper {
 
 
         try{
-            driver.findElements(By.xpath("//*[contains(text(),'simoneweberp')]")).get(0).click();
+            driver.findElements(By.xpath("//*[contains(text(),'" + request.getUserName() + "')]")).get(0).click();
         }catch (Exception e){
-            driver.findElements(By.xpath("//*[contains(text(),'simoneweberp')]")).get(1).click();
+            driver.findElements(By.xpath("//*[contains(text(),'" + request.getUserName() + "')]")).get(1).click();
         }
     }
 

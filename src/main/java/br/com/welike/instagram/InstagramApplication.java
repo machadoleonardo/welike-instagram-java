@@ -21,3 +21,11 @@ public class InstagramApplication {
 //    }
 //
 //console.log( getElementByXpath("//html[1]/body[1]/div[1]") );
+
+//https://www.instagram.com/simoneweberp/?__a=1
+//ResponseType obj=  new RestTemplate().getForObject(URL, ResponseType.class, params);
+//ResponseEntity<CurrencyConversionBean> responseEntity =
+//		new RestTemplate().getForEntity(
+//				"http://localhost:8091/currency-exchange/from/{from}/to/{to}", CurrencyConversionBean.class,  uriVariables);
+
+//ou Feign Client do Spring Boot e netflix
