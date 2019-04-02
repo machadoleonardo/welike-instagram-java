@@ -24,13 +24,15 @@ public class ScrapingService {
     public String startScraping(ScrapingRequest request) throws InterruptedException {
         String transactionId = String.valueOf(new Date());
         transactionService.save(generateTransaction(transactionId));
-        executeScraping(request);
+        for (String username : request.getUserName()) {
+            executeScraping(username);
+        }
         return transactionId;
     }
 
     @Async
-    protected void executeScraping(ScrapingRequest request) throws InterruptedException {
-        scraper.execute(request);
+    protected void executeScraping(String username) throws InterruptedException {
+        scraper.execute(username);
     }
 
 

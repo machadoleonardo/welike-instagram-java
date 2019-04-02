@@ -44,14 +44,14 @@ public class Scraper {
         this.authenticationService = authenticationService;
     }
 
-    public void execute(ScrapingRequest request) throws InterruptedException {
+    public void execute(String username) throws InterruptedException {
         driver.get(HOST_INSTAGRAM);
         authentication();
         Thread.sleep(5000);
         if (authenticationService.exists(BUTTON_NAO_ATIVAR_NOTIFICACOES)) {
             driver.findElement(By.xpath(BUTTON_NAO_ATIVAR_NOTIFICACOES)).click();
         }
-        findUser(request);
+        findUser(username);
         Thread.sleep(5000);
         findSeguidores();
     }
@@ -94,16 +94,16 @@ public class Scraper {
         jse.executeScript("window.scrollTo(0,document.body.scrollHeight);");
     }
 
-    private void findUser(ScrapingRequest request) throws InterruptedException {
+    private void findUser(String username) throws InterruptedException {
         wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(INPUT_FIND_USER)));
-        driver.findElement(By.xpath(INPUT_FIND_USER)).sendKeys(request.getUserName());
+        driver.findElement(By.xpath(INPUT_FIND_USER)).sendKeys(username);
         Thread.sleep(5000);
 
 
         try{
-            driver.findElements(By.xpath("//*[contains(text(),'" + request.getUserName() + "')]")).get(0).click();
+            driver.findElements(By.xpath("//*[contains(text(),'" + username + "')]")).get(0).click();
         }catch (Exception e){
-            driver.findElements(By.xpath("//*[contains(text(),'" + request.getUserName() + "')]")).get(1).click();
+            driver.findElements(By.xpath("//*[contains(text(),'" + username + "')]")).get(1).click();
         }
     }
 

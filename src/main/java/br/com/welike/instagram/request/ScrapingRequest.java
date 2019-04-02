@@ -4,12 +4,13 @@ import lombok.Getter;
 import lombok.Setter;
 
 import javax.validation.constraints.NotNull;
+import java.util.List;
 
 @Getter
 @Setter
 public class ScrapingRequest {
 
     @NotNull(message = "Campo username é obrigatório")
-    private String userName;
+    private List<String> userName;
 
 }
