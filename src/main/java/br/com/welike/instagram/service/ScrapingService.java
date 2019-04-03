@@ -1,49 +1,21 @@
 package br.com.welike.instagram.service;
 
-import br.com.welike.instagram.model.Transaction;
-import br.com.welike.instagram.request.ScrapingRequest;
-import br.com.welike.instagram.scraping.Scraper;
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-
-import java.util.Date;
 
 @Service
 public class ScrapingService {
 
-    private final TransactionService transactionService;
-    private final Scraper scraper;
+    private WebDriver driver;
 
     @Autowired
-    public ScrapingService(TransactionService transactionService, Scraper scraper) {
-        this.transactionService = transactionService;
-        this.scraper = scraper;
+    public ScrapingService(WebDriver driver) {
+        this.driver = driver;
     }
 
-    public String startScraping(ScrapingRequest request) throws InterruptedException {
-        String transactionId = String.valueOf(new Date());
-        transactionService.save(generateTransaction(transactionId));
-        for (String username : request.getUserName()) {
-            executeScraping(username);
-        }
-        return transactionId;
+    public boolean exists(String xpath) {
+        return driver.findElements(By.xpath(xpath)).size() != 0;
     }
-
-    @Async
-    protected void executeScraping(String username) throws InterruptedException {
-        scraper.execute(username);
-    }
-
-
-
-    private Transaction generateTransaction(String transactionId) {
-        Transaction transaction = new Transaction();
-
-        transaction.setTransactionId(transactionId);
-        transaction.setStatus("Em andamento");
-
-        return transaction;
-    }
-
 }

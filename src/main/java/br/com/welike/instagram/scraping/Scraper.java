@@ -1,12 +1,13 @@
 package br.com.welike.instagram.scraping;
 
-import br.com.welike.instagram.request.ScrapingRequest;
-import br.com.welike.instagram.service.AuthenticationService;
+import br.com.welike.instagram.service.InfluencerService;
+import br.com.welike.instagram.service.ScrapingService;
 import org.openqa.selenium.*;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -35,39 +36,42 @@ public class Scraper {
 
     private final WebDriver driver;
     private final WebDriverWait wait;
-    private final AuthenticationService authenticationService;
+    private final InfluencerService influencerService;
+    private final ScrapingService scrapingService;
 
     @Autowired
-    public Scraper(WebDriver driver, AuthenticationService authenticationService) {
+    public Scraper(WebDriver driver, InfluencerService influencerService, ScrapingService scrapingService) {
         this.driver = driver;
         this.wait = new WebDriverWait(driver, 20);
-        this.authenticationService = authenticationService;
+        this.influencerService = influencerService;
+        this.scrapingService = scrapingService;
     }
 
-    public void execute(String username) throws InterruptedException {
+    @Async
+    public void execute(String username, String transactionId) throws InterruptedException {
         driver.get(HOST_INSTAGRAM);
         authentication();
         Thread.sleep(5000);
-        if (authenticationService.exists(BUTTON_NAO_ATIVAR_NOTIFICACOES)) {
+        if (scrapingService.exists(BUTTON_NAO_ATIVAR_NOTIFICACOES)) {
             driver.findElement(By.xpath(BUTTON_NAO_ATIVAR_NOTIFICACOES)).click();
         }
         findUser(username);
         Thread.sleep(5000);
-        findSeguidores();
+        influencerService.saveInfluencers(findSeguidores(), transactionId);
     }
 
-    private void findSeguidores() throws InterruptedException {
+    private List<String> findSeguidores() throws InterruptedException {
         setSmallResolution();
         driver.findElement(By.xpath(LINK_SEGUINDO)).click();
         Thread.sleep(5000);
         scrollToMaxBotton();
+        Thread.sleep(10000);
 
         List<WebElement> usuariosSeguindo = driver.findElement(By.xpath(DIV_TABELA_PESSOAS_SEGUINDO))
                                                   .findElements(By.tagName("li"));
-
-        List<String> userNameUsuariosSeguindo = usuariosSeguindo.stream()
-                                                                .map(this::mapUsuariosSeguindoToUserName)
-                                                                .collect(Collectors.toList());
+        return usuariosSeguindo.stream()
+                               .map(this::mapUsuariosSeguindoToUserName)
+                               .collect(Collectors.toList());
     }
 
     private String mapUsuariosSeguindoToUserName(WebElement li) {

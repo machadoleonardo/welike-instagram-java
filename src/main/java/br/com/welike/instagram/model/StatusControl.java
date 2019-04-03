@@ -7,14 +7,13 @@ import lombok.Setter;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
-import java.io.Serializable;
 
 @Getter
 @Setter
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
-public class Influencer implements Serializable {
+public class StatusControl {
 
     @Id
     @NotNull
@@ -23,18 +22,12 @@ public class Influencer implements Serializable {
     private Long id;
 
     @Column
-    private String userName;
+    private Integer totalScrapings;
 
     @Column
-    private String name;
+    private Integer scrapings;
 
     @Column
-    private String picture;
-
-    @Column
-    private Long followers;
-
-    @Column
-    private Long following;
+    private String transactionId;
 
 }
