@@ -8,14 +8,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class ScrapingService {
 
-    private WebDriver driver;
-
-    @Autowired
-    public ScrapingService(WebDriver driver) {
-        this.driver = driver;
-    }
-
-    public boolean exists(String xpath) {
-        return driver.findElements(By.xpath(xpath)).size() != 0;
+    public boolean exists(WebDriver driver, String xpath) {
+        return driver.findElements(By.xpath(xpath)). size() != 0;
     }
 }

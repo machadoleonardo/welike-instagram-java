@@ -13,26 +13,26 @@ import org.springframework.util.ResourceUtils;
 import java.io.File;
 import java.io.FileNotFoundException;
 
-@Configuration
+//@Configuration
 public class WebDriverConfiguration {
 
-    @Value("${apostas.webdriver}")
-    private String webdriver;
-
-    @Bean
-    public WebDriver config() throws FileNotFoundException {
-        if (StringUtils.contains(webdriver, "chrome")) {
-            File file = ResourceUtils.getFile("classpath:driver/chromedriver.exe");
-            System.setProperty(webdriver, file.getAbsolutePath());
-//            ChromeOptions options = new ChromeOptions();
-//            options.addArguments("--headless");
-//            return new ChromeDriver(options);
-            return new ChromeDriver();
-        } else {
-            File file = ResourceUtils.getFile("classpath:driver/geckodriver.exe");
-            System.setProperty(webdriver, file.getAbsolutePath());
-            return new FirefoxDriver();
-        }
-    }
+//    @Value("${apostas.webdriver}")
+//    private String webdriver;
+//
+//    @Bean
+//    public WebDriver config() throws FileNotFoundException {
+//        if (StringUtils.contains(webdriver, "chrome")) {
+//            File file = ResourceUtils.getFile("classpath:driver/chromedriver");
+//            System.setProperty(webdriver, file.getAbsolutePath());
+////            ChromeOptions options = new ChromeOptions();
+////            options.addArguments("--headless");
+////            return new ChromeDriver(options);
+//            return new ChromeDriver();
+//        } else {
+//            File file = ResourceUtils.getFile("classpath:driver/geckodriver.exe");
+//            System.setProperty(webdriver, file.getAbsolutePath());
+//            return new FirefoxDriver();
+//        }
+//    }
 
 }
