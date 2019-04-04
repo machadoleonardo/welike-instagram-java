@@ -5,7 +5,6 @@ import br.com.welike.instagram.service.ScrapingService;
 import org.apache.commons.lang3.StringUtils;
 import org.openqa.selenium.*;
 import org.openqa.selenium.Dimension;
-import org.openqa.selenium.Point;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.interactions.Actions;
@@ -35,12 +34,12 @@ public class Scraper {
 
     private final String INPUT_LOGIN = "//*[@id=\"react-root\"]/section/main/div/article/div/div[1]/div/form/div[2]/div/div[1]/input";
     private final String INPUT_PASSWORD = "//*[@id=\"react-root\"]/section/main/div/article/div/div[1]/div/form/div[3]/div/div[1]/input";
-    private final String BUTTON_LOGIN = "//*[@id=\"react-root\"]/section/main/div/article/div/div[1]/div/form/div[4]/button";
+    private final String BUTTON_LOGIN = "//*[@type=\"submit\"]";
     private final String INPUT_FIND_USER = "//*[@id=\"react-root\"]/section/nav/div[2]/div/div/div[2]/input";
     private final String BUTTON_NAO_ATIVAR_NOTIFICACOES = "//*/button[contains(text(),'Agora não')]";
     private final String LINK_SEGUINDO = "//*[@id=\"react-root\"]/section/main/div/header/section/ul/li[3]/a";
     private final String DIV_TABELA_PESSOAS_SEGUINDO = "//*[@id=\"react-root\"]/section/main/div[2]/ul/div";
-    private final String PRIMEIRO_SEGUIDOR = "/html/body/div[3]/div/div[2]/ul/div/li[1]";
+    private final String DIALOG = "//*[@role='dialog']";
 
 
     @Value("${instagram.auth.login}")
@@ -97,7 +96,7 @@ public class Scraper {
 //        setSmallResolution(driver);
         driver.findElement(By.xpath(LINK_SEGUINDO)).click();
         Thread.sleep(5000);
-        moveMouse(driver, driver.findElement(By.xpath(PRIMEIRO_SEGUIDOR)));
+        moveMouse(driver, driver.findElement(By.xpath(DIALOG)));
         scrollToMaxBotton(driver);
         Thread.sleep(10000);
 
@@ -109,8 +108,10 @@ public class Scraper {
     }
 
     private void moveMouse(WebDriver driver, WebElement element) throws AWTException {
-        Actions action = new Actions(driver);
-        action.moveToElement(element);
+        Actions actions = new Actions(driver);
+        actions.moveToElement(element);
+        actions.perform();
+
 
     }
 
@@ -142,13 +143,7 @@ public class Scraper {
         wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(INPUT_FIND_USER)));
         driver.findElement(By.xpath(INPUT_FIND_USER)).sendKeys(username);
         Thread.sleep(5000);
-
-
-        try{
-            driver.findElements(By.xpath("//*[contains(text(),'" + username + "')]")).get(0).click();
-        }catch (Exception e){
-            driver.findElements(By.xpath("//*[contains(text(),'" + username + "')]")).get(1).click();
-        }
+        driver.findElement(By.xpath("//*/span[text()='" + username + "']")).click();
     }
 
     private void authentication(WebDriver driver) {
