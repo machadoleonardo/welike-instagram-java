@@ -40,6 +40,10 @@ public class Scraper {
     private final String LINK_SEGUINDO = "//*[@id=\"react-root\"]/section/main/div/header/section/ul/li[3]/a";
     private final String DIV_TABELA_PESSOAS_SEGUINDO = "//*[@id=\"react-root\"]/section/main/div[2]/ul/div";
     private final String DIALOG = "//*[@role='dialog']";
+    private final String LINK_EXPLORE_PEOPLE = "//*[@href='/explore/people/']";
+
+
+    //*[@role='dialog']/descendant::li[last()]
 
 
     @Value("${instagram.auth.login}")
@@ -107,12 +111,18 @@ public class Scraper {
                                .collect(Collectors.toList());
     }
 
-    private void moveMouse(WebDriver driver, WebElement element) throws AWTException {
+    private void moveMouse(WebDriver driver, WebElement element) throws AWTException, InterruptedException {
         Actions actions = new Actions(driver);
-        actions.moveToElement(element);
-        actions.perform();
+        for (int i = 0; i < 8; i++) {
+            Thread.sleep(1000);
+            actions.moveToElement(element).click().sendKeys(Keys.ARROW_DOWN).build().perform();
+        }
+        for (int i = 0; i < 6; i++) {
+            actions.moveToElement(element).click().sendKeys(Keys.END).build().perform();
+        }
 
-
+//        wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(LINK_EXPLORE_PEOPLE)));
+//        driver.findElement(By.xpath(LINK_EXPLORE_PEOPLE)).click();
     }
 
     private String mapUsuariosSeguindoToUserName(WebElement li) {

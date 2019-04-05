@@ -29,3 +29,7 @@ public class InstagramApplication {
 //				"http://localhost:8091/currency-exchange/from/{from}/to/{to}", CurrencyConversionBean.class,  uriVariables);
 
 //ou Feign Client do Spring Boot e netflix
+
+
+
+//"//*[@role='dialog']/descendant::a[@title]/text()"
