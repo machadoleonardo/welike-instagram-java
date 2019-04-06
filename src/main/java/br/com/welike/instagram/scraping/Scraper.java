@@ -37,8 +37,11 @@ public class Scraper {
     private final String BUTTON_LOGIN = "//*[@type=\"submit\"]";
     private final String INPUT_FIND_USER = "//*[@id=\"react-root\"]/section/nav/div[2]/div/div/div[2]/input";
     private final String BUTTON_NAO_ATIVAR_NOTIFICACOES = "//*/button[contains(text(),'Agora não')]";
-    private final String LINK_SEGUINDO = "//*[@id=\"react-root\"]/section/main/div/header/section/ul/li[3]/a";
+    private final String LINK_SEGUINDO = "//*[@href='/%s/following/']";
     private final String DIV_TABELA_PESSOAS_SEGUINDO = "//*[@id=\"react-root\"]/section/main/div[2]/ul/div";
+    private final String MODAL_SEGUINDO = "//*[@role='dialog']";
+    private final String BUTTON_SEGUINDO = "//*/button[text()='Seguir']";
+    private final String LINK_USER_SELECTED = "//*/span[text()='%s']";
     private final String DIALOG = "//*[@role='dialog']";
     private final String LINK_EXPLORE_PEOPLE = "//*[@href='/explore/people/']";
 
@@ -74,13 +77,13 @@ public class Scraper {
         }
         findUser(driver, username);
         Thread.sleep(5000);
-        influencerService.saveInfluencers(findSeguidores(driver), transactionId);
+        influencerService.saveInfluencers(findSeguidores(driver, username), transactionId);
     }
 
     private WebDriver newWebDriver() throws FileNotFoundException {
         WebDriver driver = null;
         if (StringUtils.contains(webdriver, "chrome")) {
-            File file = ResourceUtils.getFile("classpath:driver/chromedriver");
+            File file = ResourceUtils.getFile("classpath:driver/chromedriver.exe");
             System.setProperty(webdriver, file.getAbsolutePath());
 //            ChromeOptions options = new ChromeOptions();
 //            options.addArguments("--headless");
@@ -96,15 +99,15 @@ public class Scraper {
         return driver;
     }
 
-    private List<String> findSeguidores(WebDriver driver) throws InterruptedException, AWTException {
-//        setSmallResolution(driver);
-        driver.findElement(By.xpath(LINK_SEGUINDO)).click();
-        Thread.sleep(5000);
-        moveMouse(driver, driver.findElement(By.xpath(DIALOG)));
-        scrollToMaxBotton(driver);
-        Thread.sleep(10000);
+    private List<String> findSeguidores(WebDriver driver, String username) throws InterruptedException, AWTException {
+        driver.findElement(By.xpath(String.format(LINK_SEGUINDO, username))).click();
+        scrapingService.waitVisibility(wait, BUTTON_SEGUINDO);
 
-        List<WebElement> usuariosSeguindo = driver.findElement(By.xpath(DIV_TABELA_PESSOAS_SEGUINDO))
+//        moveMouse(driver, driver.findElement(By.xpath(BUTTON_SEGUINDO)));
+//        scrollToMaxBotton(driver);
+//        Thread.sleep(10000);
+
+        List<WebElement> usuariosSeguindo = driver.findElement(By.xpath(MODAL_SEGUINDO))
                                                   .findElements(By.tagName("li"));
         return usuariosSeguindo.stream()
                                .map(this::mapUsuariosSeguindoToUserName)
@@ -139,21 +142,12 @@ public class Scraper {
         return userName;
     }
 
-    private void setSmallResolution(WebDriver driver) {
-        Dimension dimension = new Dimension(300, 500);
-        driver.manage().window().setSize(dimension);
-    }
-
-    private void scrollToMaxBotton(WebDriver driver) {
-        JavascriptExecutor jse = (JavascriptExecutor)driver;
-        jse.executeScript("window.scrollTo(0,document.body.scrollHeight);");
-    }
-
     private void findUser(WebDriver driver, String username) throws InterruptedException {
+        String xpathUserSelected = String.format(LINK_USER_SELECTED, username);
         wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(INPUT_FIND_USER)));
         driver.findElement(By.xpath(INPUT_FIND_USER)).sendKeys(username);
-        Thread.sleep(5000);
-        driver.findElement(By.xpath("//*/span[text()='" + username + "']")).click();
+        scrapingService.waitVisibility(wait, xpathUserSelected);
+        driver.findElement(By.xpath(xpathUserSelected)).click();
     }
 
     private void authentication(WebDriver driver) {

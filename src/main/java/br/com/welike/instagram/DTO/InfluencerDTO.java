@@ -7,11 +7,15 @@ import lombok.Setter;
 @Setter
 public class InfluencerDTO {
 
-    private String userName;
     private Long id;
-    private String name;
-    private String picture;
-    private Long followers;
-    private Long following;
+    private String userName;
+    private String profile_picture;
+    private String full_name;
+    private String bio;
+    private String website;
+    private Boolean is_business;
+    private Integer media;
+    private Integer follows;
+    private Integer followed_by;
 
 }

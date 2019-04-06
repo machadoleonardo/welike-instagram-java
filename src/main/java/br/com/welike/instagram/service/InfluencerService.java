@@ -62,6 +62,6 @@ public class InfluencerService {
 
     private Influencer getInfluencerInApiInstagram(String username) {
         RestTemplate restTemplate = new RestTemplate();
-        return restTemplate.getForObject("https://www.instagram.com/" + username + "/?__a=1", Influencer.class);
+        return restTemplate.getForObject("http://localhost:5000/start/" + username, Influencer.class);
     }
 }

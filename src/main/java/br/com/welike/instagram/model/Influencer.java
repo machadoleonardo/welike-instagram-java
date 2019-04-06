@@ -26,15 +26,27 @@ public class Influencer implements Serializable {
     private String userName;
 
     @Column
-    private String name;
+    private String profile_picture;
 
     @Column
-    private String picture;
+    private String full_name;
 
     @Column
-    private Long followers;
+    private String bio;
 
     @Column
-    private Long following;
+    private String website;
+
+    @Column
+    private Boolean is_business;
+
+    @Column
+    private Integer media;
+
+    @Column
+    private Integer follows;
+
+    @Column
+    private Integer followed_by;
 
 }
