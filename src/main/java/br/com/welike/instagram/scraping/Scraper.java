@@ -2,6 +2,13 @@ package br.com.welike.instagram.scraping;
 
 import br.com.welike.instagram.service.InfluencerService;
 import br.com.welike.instagram.service.ScrapingService;
+import me.postaddict.instagram.scraper.Instagram;
+import me.postaddict.instagram.scraper.cookie.CookieHashSet;
+import me.postaddict.instagram.scraper.cookie.DefaultCookieJar;
+import me.postaddict.instagram.scraper.interceptor.ErrorInterceptor;
+import me.postaddict.instagram.scraper.model.Account;
+import okhttp3.OkHttpClient;
+import okhttp3.logging.HttpLoggingInterceptor;
 import org.apache.commons.lang3.StringUtils;
 import org.openqa.selenium.*;
 import org.openqa.selenium.Dimension;
@@ -19,6 +26,7 @@ import org.springframework.util.ResourceUtils;
 import java.awt.*;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -44,10 +52,9 @@ public class Scraper {
     private final String LINK_USER_SELECTED = "//*/span[text()='%s']";
     private final String DIALOG = "//*[@role='dialog']";
     private final String LINK_EXPLORE_PEOPLE = "//*[@href='/explore/people/']";
-
-
-    //*[@role='dialog']/descendant::li[last()]
-
+    private final String LI_LAST_SEGUIDOR = "//*[@role='dialog']/descendant::li[last()]";
+    private final String LINK_BAIXAR_APLICATIVO = "//*/a[text()='Baixar aplicativo']";
+    private final String LINK_NAO_BAIXAR_APLICATIVO = "//*/a[text()='Agora não']";
 
     @Value("${instagram.auth.login}")
     private String login;
@@ -66,12 +73,15 @@ public class Scraper {
     }
 
     @Async
-    public void execute(String username, String transactionId) throws InterruptedException, FileNotFoundException, AWTException {
+    public void execute(String username, String transactionId) throws InterruptedException, IOException, AWTException {
         WebDriver driver = newWebDriver();
 
         driver.get(HOST_INSTAGRAM);
         authentication(driver);
         Thread.sleep(5000);
+        if (scrapingService.exists(driver, LINK_BAIXAR_APLICATIVO)) {
+            driver.findElement(By.xpath(LINK_NAO_BAIXAR_APLICATIVO)).click();
+        }
         if (scrapingService.exists(driver, BUTTON_NAO_ATIVAR_NOTIFICACOES)) {
             driver.findElement(By.xpath(BUTTON_NAO_ATIVAR_NOTIFICACOES)).click();
         }
@@ -103,9 +113,7 @@ public class Scraper {
         driver.findElement(By.xpath(String.format(LINK_SEGUINDO, username))).click();
         scrapingService.waitVisibility(wait, BUTTON_SEGUINDO);
 
-//        moveMouse(driver, driver.findElement(By.xpath(BUTTON_SEGUINDO)));
-//        scrollToMaxBotton(driver);
-//        Thread.sleep(10000);
+//        moveMouse(driver, driver.findElement(By.xpath(DIALOG)));
 
         List<WebElement> usuariosSeguindo = driver.findElement(By.xpath(MODAL_SEGUINDO))
                                                   .findElements(By.tagName("li"));

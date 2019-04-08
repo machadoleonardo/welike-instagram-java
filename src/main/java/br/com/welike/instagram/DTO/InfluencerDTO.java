@@ -12,9 +12,7 @@ public class InfluencerDTO {
     private String profile_picture;
     private String full_name;
     private String bio;
-    private String website;
-    private Boolean is_business;
-    private Integer media;
+    private Boolean isPrivate;
     private Integer follows;
     private Integer followed_by;
 

@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import java.awt.*;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 
 @RestController
 @RequestMapping(path = "/")
@@ -28,7 +29,7 @@ public class ScrapingController {
 
     @PostMapping(produces = "application/json")
     @ResponseStatus(HttpStatus.OK)
-    public String scrapping(@RequestBody @Valid ScrapingRequest request) throws InterruptedException, FileNotFoundException, AWTException {
+    public String scrapping(@RequestBody @Valid ScrapingRequest request) throws InterruptedException, IOException, AWTException {
         return scrapingControlService.startScraping(request);
     }
 

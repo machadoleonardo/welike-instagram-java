@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import java.awt.*;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.Date;
 
 @Service
@@ -27,7 +28,7 @@ public class ScrapingControlService {
         this.scraper = scraper;
     }
 
-    public String startScraping(ScrapingRequest request) throws InterruptedException, FileNotFoundException, AWTException {
+    public String startScraping(ScrapingRequest request) throws InterruptedException, IOException, AWTException {
         String transactionId = String.valueOf(new Date());
 
         saveTransaction(transactionId);
