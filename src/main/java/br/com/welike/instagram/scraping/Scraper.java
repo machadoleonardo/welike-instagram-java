@@ -1,17 +1,13 @@
 package br.com.welike.instagram.scraping;
 
+import br.com.welike.instagram.WebDriverControl;
 import br.com.welike.instagram.service.InfluencerService;
 import br.com.welike.instagram.service.ScrapingService;
-import me.postaddict.instagram.scraper.Instagram;
-import me.postaddict.instagram.scraper.cookie.CookieHashSet;
-import me.postaddict.instagram.scraper.cookie.DefaultCookieJar;
-import me.postaddict.instagram.scraper.interceptor.ErrorInterceptor;
-import me.postaddict.instagram.scraper.model.Account;
-import okhttp3.OkHttpClient;
-import okhttp3.logging.HttpLoggingInterceptor;
 import org.apache.commons.lang3.StringUtils;
-import org.openqa.selenium.*;
-import org.openqa.selenium.Dimension;
+import org.openqa.selenium.By;
+import org.openqa.selenium.Keys;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.interactions.Actions;
@@ -62,7 +58,6 @@ public class Scraper {
     @Value("${instagram.auth.password}")
     private String password;
 
-    private WebDriverWait wait;
     private final InfluencerService influencerService;
     private final ScrapingService scrapingService;
 
@@ -74,26 +69,28 @@ public class Scraper {
 
     @Async
     public void execute(String username, String transactionId) throws InterruptedException, IOException, AWTException {
-        WebDriver driver = newWebDriver();
+        WebDriverControl webDriverControl = getWebDriverControl();
 
-        driver.get(HOST_INSTAGRAM);
-        authentication(driver);
+        webDriverControl.getDriver().get(HOST_INSTAGRAM);
+        authentication(webDriverControl);
         Thread.sleep(5000);
-        if (scrapingService.exists(driver, LINK_BAIXAR_APLICATIVO)) {
-            driver.findElement(By.xpath(LINK_NAO_BAIXAR_APLICATIVO)).click();
+        if (scrapingService.exists(webDriverControl, LINK_BAIXAR_APLICATIVO)) {
+            webDriverControl.getDriver().findElement(By.xpath(LINK_NAO_BAIXAR_APLICATIVO)).click();
         }
-        if (scrapingService.exists(driver, BUTTON_NAO_ATIVAR_NOTIFICACOES)) {
-            driver.findElement(By.xpath(BUTTON_NAO_ATIVAR_NOTIFICACOES)).click();
+        if (scrapingService.exists(webDriverControl, BUTTON_NAO_ATIVAR_NOTIFICACOES)) {
+            webDriverControl.getDriver().findElement(By.xpath(BUTTON_NAO_ATIVAR_NOTIFICACOES)).click();
         }
-        findUser(driver, username);
+        findUser(webDriverControl, username);
         Thread.sleep(5000);
-        influencerService.saveInfluencers(findSeguidores(driver, username), transactionId);
+        List<String> seguidores = findSeguidores(webDriverControl, username);
+        webDriverControl.getDriver().close();
+        influencerService.saveInfluencers(seguidores, transactionId);
     }
 
-    private WebDriver newWebDriver() throws FileNotFoundException {
+    private WebDriver getWebDriver() throws FileNotFoundException {
         WebDriver driver = null;
         if (StringUtils.contains(webdriver, "chrome")) {
-            File file = ResourceUtils.getFile("classpath:driver/chromedriver.exe");
+            File file = ResourceUtils.getFile("classpath:driver/chromedriver");
             System.setProperty(webdriver, file.getAbsolutePath());
 //            ChromeOptions options = new ChromeOptions();
 //            options.addArguments("--headless");
@@ -105,17 +102,27 @@ public class Scraper {
             driver = new FirefoxDriver();
         }
 
-        this.wait = new WebDriverWait(driver, 20);
         return driver;
     }
 
-    private List<String> findSeguidores(WebDriver driver, String username) throws InterruptedException, AWTException {
-        driver.findElement(By.xpath(String.format(LINK_SEGUINDO, username))).click();
-        scrapingService.waitVisibility(wait, BUTTON_SEGUINDO);
+    private WebDriverControl getWebDriverControl() throws FileNotFoundException {
+        WebDriverControl webDriverControl = new WebDriverControl();
+        WebDriver driver = getWebDriver();
+
+        webDriverControl.setDriver(driver);
+        webDriverControl.setWait(new WebDriverWait(driver, 20));
+
+        return webDriverControl;
+    }
+
+    private List<String> findSeguidores(WebDriverControl webDriverControl, String username) throws InterruptedException, AWTException {
+        webDriverControl.getDriver().findElement(By.xpath(String.format(LINK_SEGUINDO, username))).click();
+        scrapingService.waitVisibility(webDriverControl.getWait(), BUTTON_SEGUINDO);
+        Thread.sleep(1000);
 
 //        moveMouse(driver, driver.findElement(By.xpath(DIALOG)));
 
-        List<WebElement> usuariosSeguindo = driver.findElement(By.xpath(MODAL_SEGUINDO))
+        List<WebElement> usuariosSeguindo = webDriverControl.getDriver().findElement(By.xpath(MODAL_SEGUINDO))
                                                   .findElements(By.tagName("li"));
         return usuariosSeguindo.stream()
                                .map(this::mapUsuariosSeguindoToUserName)
@@ -150,20 +157,20 @@ public class Scraper {
         return userName;
     }
 
-    private void findUser(WebDriver driver, String username) throws InterruptedException {
+    private void findUser(WebDriverControl webDriverControl, String username) throws InterruptedException {
         String xpathUserSelected = String.format(LINK_USER_SELECTED, username);
-        wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(INPUT_FIND_USER)));
-        driver.findElement(By.xpath(INPUT_FIND_USER)).sendKeys(username);
-        scrapingService.waitVisibility(wait, xpathUserSelected);
-        driver.findElement(By.xpath(xpathUserSelected)).click();
+        webDriverControl.getWait().until(ExpectedConditions.visibilityOfElementLocated(By.xpath(INPUT_FIND_USER)));
+        webDriverControl.getDriver().findElement(By.xpath(INPUT_FIND_USER)).sendKeys(username);
+        scrapingService.waitVisibility(webDriverControl.getWait(), xpathUserSelected);
+        webDriverControl.getDriver().findElement(By.xpath(xpathUserSelected)).click();
     }
 
-    private void authentication(WebDriver driver) {
-        wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(INPUT_LOGIN)));
+    private void authentication(WebDriverControl webDriverControl) {
+        webDriverControl.getWait().until(ExpectedConditions.visibilityOfElementLocated(By.xpath(INPUT_LOGIN)));
 
-        driver.findElement(By.xpath(INPUT_LOGIN)).sendKeys(login);
-        driver.findElement(By.xpath(INPUT_PASSWORD)).sendKeys(password);
+        webDriverControl.getDriver().findElement(By.xpath(INPUT_LOGIN)).sendKeys(login);
+        webDriverControl.getDriver().findElement(By.xpath(INPUT_PASSWORD)).sendKeys(password);
 
-        driver.findElement(By.xpath(BUTTON_LOGIN)).click();
+        webDriverControl.getDriver().findElement(By.xpath(BUTTON_LOGIN)).click();
     }
 }

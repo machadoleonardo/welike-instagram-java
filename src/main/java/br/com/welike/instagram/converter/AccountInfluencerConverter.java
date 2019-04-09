@@ -12,7 +12,7 @@ public class AccountInfluencerConverter implements Converter<Account, Influencer
     public Influencer encode(Account account) {
         Influencer Influencer = new Influencer();
 
-        Influencer.setId(account.getId());
+        Influencer.setInstagramId(account.getId());
         Influencer.setBio(account.getBiography());
         Influencer.setFollowedBy(account.getFollowedBy());
         Influencer.setFollows(account.getFollows());

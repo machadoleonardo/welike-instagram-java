@@ -29,7 +29,7 @@ public class ScrapingControlService {
     }
 
     public String startScraping(ScrapingRequest request) throws InterruptedException, IOException, AWTException {
-        String transactionId = String.valueOf(new Date());
+        String transactionId = String.valueOf(new Date().getTime());
 
         saveTransaction(transactionId);
         saveStatusControl(transactionId, request.getUserName().size());

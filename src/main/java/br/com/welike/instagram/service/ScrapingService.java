@@ -1,5 +1,6 @@
 package br.com.welike.instagram.service;
 
+import br.com.welike.instagram.WebDriverControl;
 import org.openqa.selenium.By;
 import org.openqa.selenium.Dimension;
 import org.openqa.selenium.JavascriptExecutor;
@@ -12,8 +13,8 @@ import org.springframework.stereotype.Service;
 @Service
 public class ScrapingService {
 
-    public boolean exists(WebDriver driver, String xpath) {
-        return driver.findElements(By.xpath(xpath)). size() != 0;
+    public boolean exists(WebDriverControl webDriverControl, String xpath) {
+        return webDriverControl.getDriver().findElements(By.xpath(xpath)). size() != 0;
     }
 
     public void waitVisibility(WebDriverWait wait, String xpath) {

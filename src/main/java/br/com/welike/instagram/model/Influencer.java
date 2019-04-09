@@ -1,5 +1,4 @@
 package br.com.welike.instagram.model;
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -21,6 +20,9 @@ public class Influencer implements Serializable {
     @Column
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
+
+    @Column
+    private Long instagramId;
 
     @Column
     private String userName;

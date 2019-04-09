@@ -2,6 +2,7 @@ package br.com.welike.instagram.controller;
 
 import br.com.welike.instagram.model.Transaction;
 import br.com.welike.instagram.request.ScrapingRequest;
+import br.com.welike.instagram.response.ScrapingResponse;
 import br.com.welike.instagram.service.ScrapingControlService;
 import br.com.welike.instagram.service.ScrapingService;
 import br.com.welike.instagram.service.TransactionService;
@@ -29,8 +30,10 @@ public class ScrapingController {
 
     @PostMapping(produces = "application/json")
     @ResponseStatus(HttpStatus.OK)
-    public String scrapping(@RequestBody @Valid ScrapingRequest request) throws InterruptedException, IOException, AWTException {
-        return scrapingControlService.startScraping(request);
+    public ScrapingResponse scrapping(@RequestBody @Valid ScrapingRequest request) throws InterruptedException, IOException, AWTException {
+        ScrapingResponse scrapingResponse = new ScrapingResponse();
+        scrapingResponse.setTransactionId(scrapingControlService.startScraping(request));
+        return scrapingResponse;
     }
 
     @GetMapping(value = "/{transactionId}", produces = "application/json")

@@ -45,7 +45,7 @@ public class InfluencerService {
     }
 
     public void saveInfluencers(List<String> usernames, String transactionId) throws IOException {
-        List<Influencer> influencers = getInfluencers(usernames);
+        List<Influencer> influencers = save(getInfluencers(usernames));
 
         Transaction transaction = transactionService.findByTransactionId(transactionId);
         transaction.setInfluencers(new HashSet<>(influencers));
@@ -83,5 +83,13 @@ public class InfluencerService {
         instagram.basePage();
 
         return instagram.getAccountByUsername(username);
+    }
+
+    public List<Influencer> save(List<Influencer> influencers) {
+        return repository.saveAll(influencers);
+    }
+
+    public Influencer save(Influencer influencer) {
+        return repository.save(influencer);
     }
 }
