@@ -3,6 +3,7 @@ package br.com.welike.instagram.controller;
 import br.com.welike.instagram.model.Transaction;
 import br.com.welike.instagram.request.ScrapingRequest;
 import br.com.welike.instagram.response.ScrapingResponse;
+import br.com.welike.instagram.scraping.UserScraping;
 import br.com.welike.instagram.service.ScrapingControlService;
 import br.com.welike.instagram.service.ScrapingService;
 import br.com.welike.instagram.service.TransactionService;
@@ -30,9 +31,13 @@ public class ScrapingController {
 
     @PostMapping(produces = "application/json")
     @ResponseStatus(HttpStatus.OK)
-    public ScrapingResponse scrapping(@RequestBody @Valid ScrapingRequest request) throws InterruptedException, IOException, AWTException {
+    public ScrapingResponse scrapping(@RequestBody @Valid ScrapingRequest request) {
         ScrapingResponse scrapingResponse = new ScrapingResponse();
-        scrapingResponse.setTransactionId(scrapingControlService.startScraping(request));
+        try {
+            scrapingResponse.setTransactionId(scrapingControlService.startScraping(request));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         return scrapingResponse;
     }
 

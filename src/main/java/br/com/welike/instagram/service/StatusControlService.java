@@ -5,6 +5,8 @@ import br.com.welike.instagram.repository.StatusControlRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
+
 @Service
 public class StatusControlService {
 
@@ -23,6 +25,7 @@ public class StatusControlService {
         return repository.findByTransactionId(transactionId);
     }
 
+    @Transactional
     public void deleteByTransactionId(String transactionId) {
         repository.deleteByTransactionId(transactionId);
     }
