@@ -1,5 +1,7 @@
 package br.com.welike.instagram.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -20,16 +22,20 @@ public class Transaction {
     @NotNull
     @Column
     @GeneratedValue(strategy = GenerationType.AUTO)
+    @JsonInclude
+    @JsonIgnore
     private Long id;
 
     @NotNull
     @Column
+    @JsonIgnore
     private String transactionId;
 
     @NotNull
     @Column
     private String status;
 
+    @JsonInclude
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "transaction_influencer",
             joinColumns = @JoinColumn(

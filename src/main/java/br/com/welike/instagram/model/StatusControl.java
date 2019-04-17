@@ -30,4 +30,6 @@ public class StatusControl {
     @Column
     private String transactionId;
 
+    @Column
+    private Boolean ativo;
 }

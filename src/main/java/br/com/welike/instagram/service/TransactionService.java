@@ -23,7 +23,6 @@ public class TransactionService {
         if (!statusControl.getScrapings().equals(statusControl.getTotalScrapings())) {
             return getTransactionEmAnadamento(transactionId);
         }
-        statusControlService.deleteByTransactionId(transactionId);
         return findByTransactionId(transactionId);
     }
 
@@ -41,7 +40,7 @@ public class TransactionService {
     }
 
     public void save(Transaction transaction) {
-        this.repository.save(transaction);
+        this.repository. save(transaction);
     }
 
 }

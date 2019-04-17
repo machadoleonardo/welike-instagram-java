@@ -18,7 +18,7 @@ public class StatusControlService {
     }
 
     public void save(StatusControl statusControl) {
-        this.repository.save(statusControl);
+        repository.save(statusControl);
     }
 
     public StatusControl findByTransactionId(String transactionId) {

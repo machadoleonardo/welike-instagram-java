@@ -7,6 +7,7 @@ import br.com.welike.instagram.service.ScrapingService;
 import org.openqa.selenium.*;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
@@ -16,11 +17,12 @@ import java.awt.*;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 public class Scraper {
 
-    @Value("${apostas.webdriver}")
+    @Value("${welike.webdriver}")
     private String webdriver;
 
     private final String HOST_INSTAGRAM = "https://www.instagram.com/accounts/login/?source=auth_switcher";
@@ -51,31 +53,33 @@ public class Scraper {
 
     private final InfluencerService influencerService;
     private final ScrapingService scrapingService;
+    private final BeanFactory beanFactory;
 
     @Autowired
-    public Scraper(InfluencerService influencerService, ScrapingService scrapingService) {
+    public Scraper(InfluencerService influencerService, ScrapingService scrapingService, BeanFactory beanFactory) {
         this.influencerService = influencerService;
         this.scrapingService = scrapingService;
+        this.beanFactory = beanFactory;
     }
 
     @Async
     public void execute(String username, String transactionId) throws InterruptedException, IOException, AWTException {
-        WebDriverControl webDriverControl = new WebDriverControl().getWebDriverControl();
+        WebDriverControl webDriverControl = beanFactory.getBean(WebDriverControl.class);
+        webDriverControl.setWebDriverControl();
+
         webDriverControl.getDriver().get(HOST_INSTAGRAM);
 
         List<Cookie> cookies = new ArrayList<>(0);
 
-        cookies.add(new Cookie("csrftoken", "DqOwovVT8pSzlfZp6Bqutvtzax88NaKG"));
+        cookies.add(new Cookie("csrftoken", "9CYUp865ljjZ9wzi2bFcgzCvX5YToRTQ"));
         cookies.add(new Cookie("ds_user_id", "8680661754"));
-        cookies.add(new Cookie("fbm_124024574287414", "base_domain=.instagram.com"));
-        cookies.add(new Cookie("fbsr_124024574287414", "nBYb8WlpNhdK1znWN8WXanP-FoKqZEHoq8nYwaejEoE.eyJjb2RlIjoiQVFBOWUtWUtJR2RfbVYyQThuazE5ODFlaTlDVWVrZWFsQm1idG1UdlQtdklxeTVmZXdYbV9FVE4tVHlUajhFSFM0d25zLWlxREM4by1XbVg4Q0wwMVZSVXk4MUdUMWlUQXd3RmR3SWxQN01JdUJKbjN0YkdRZ3RFUlVEMk9fRHJIVWRlZ2ZPUUIyR1NLSGNvRXZ6SHB5VG92WVd1VUFHN29yQmZnbFo5S1QtUTQ5Znp2NUdpN0otd01nU09JVDkyQUZtOWtYMlNQZ25qSWJfNmVnVENIMFlBWk5RSER3MmEtOGZXV3IzQU5UdDdUXy02RC1TU2tsenFhTlNUNW91YlJVZ3NiMkNJNzFfNW8wWUFDM0t3NVJIS2h5TTZyb0pyZmppSnA1WTJiRVRKMjhsV1Z3b3pQSmZxR2szdHdYWUZPejMwN1FkVHUzdU9KQUxXQlp2cklmejgzVi1KVndxVmx6Nm5NaWJVbmVMa2JPOUoyaTNibkRKbGVOdzlvUk1xVjdBIiwidXNlcl9pZCI6IjEwMDAwNDEwMzU5OTEzNiIsImFsZ29yaXRobSI6IkhNQUMtU0hBMjU2IiwiaXNzdWVkX2F0IjoxNTU1MjUzMTgxfQ"));
         cookies.add(new Cookie("mcd", "3"));
-        cookies.add(new Cookie("mid", "W2N42QALAAGYUoijBf5B6hJpuLkY"));
-        cookies.add(new Cookie("rur", "FTW"));
-        cookies.add(new Cookie("sessionid", "8680661754%3A4tERvYxRTlCRcS%3A10"));
-        cookies.add(new Cookie("shbid", "1210"));
-        cookies.add(new Cookie("shbts", "1555252418.8643045"));
-        cookies.add(new Cookie("urlgen", "\"{\\\"2804:7f5:f380:101e:20ab:4890:eb56:9db8\\\": 18881}:1hFgP3:saZiRwm_1a5Dob603K8Fqh3h51k\""));
+        cookies.add(new Cookie("mid", "XD96wQAEAAEE3tKTsRIWuSH1kdIV"));
+        cookies.add(new Cookie("rur", "ATN"));
+        cookies.add(new Cookie("sessionid", "8680661754%3Ays0O9VpkOq0hGU%3A10"));
+        cookies.add(new Cookie("shbid", "3166"));
+        cookies.add(new Cookie("shbts", "1555342831.1156552"));
+        cookies.add(new Cookie("urlgen", "\"{\\\"189.39.26.163\\\": 16735}:1hG3ik:GQfp_Z9WjLD0rzEdaJKnhKj4XHs\""));
 
         for(Cookie cookie : cookies) {
             webDriverControl.getDriver().manage().addCookie(cookie);
@@ -90,11 +94,15 @@ public class Scraper {
         if (scrapingService.exists(webDriverControl, BUTTON_NAO_ATIVAR_NOTIFICACOES)) {
             webDriverControl.getDriver().findElement(By.xpath(BUTTON_NAO_ATIVAR_NOTIFICACOES)).click();
         }
+
         findUser(webDriverControl, username);
         Thread.sleep(5000);
+
         List<Influencer> seguidores = findSeguidores(webDriverControl, username);
+
         webDriverControl.getDriver().close();
-        influencerService.saveInfluencers(seguidores, transactionId);
+
+        influencerService.save(seguidores, transactionId);
     }
 
     private List<Influencer> findSeguidores(WebDriverControl webDriverControl, String username) throws InterruptedException, AWTException {
@@ -108,12 +116,22 @@ public class Scraper {
 
         List<WebElement> usuariosSeguindo = webDriverControl.getDriver().findElement(By.xpath(MODAL_SEGUINDO))
                                                   .findElements(By.tagName("li"));
+        List<String> userNameList = usuariosSeguindo.stream()
+                .map(this::mapUsuariosSeguindoToUserName)
+                .collect(Collectors.toList());
 
-        for (WebElement usuarioSeguindo : usuariosSeguindo) {
-            influencers.add(mapUserNameToInfluencer(webDriverControl, usuarioSeguindo));
-        }
+//        for (String userNameOfList : userNameList) {
+//            influencers.add(mapUserNameToInfluencer(webDriverControl, userNameOfList));
+//        }
+
+        influencers.add(mapUserNameToInfluencer(webDriverControl, userNameList.get(0)));
 
         return influencers;
+    }
+
+    private Influencer mapUserNameToInfluencer(WebDriverControl webDriverControl, String username) throws InterruptedException {
+        UserScraping userScraping = new UserScraping();
+        return userScraping.execute(webDriverControl, username);
     }
 
     private void moveMouse(WebDriver driver, WebElement element) throws AWTException, InterruptedException {
@@ -130,9 +148,8 @@ public class Scraper {
 //        driver.findElement(By.xpath(LINK_EXPLORE_PEOPLE)).click();
     }
 
-    private Influencer mapUserNameToInfluencer(WebDriverControl webDriverControl, WebElement li) throws InterruptedException {
+    private String mapUsuariosSeguindoToUserName(WebElement li) {
         String userName = "";
-        UserScraping userScraping = new UserScraping();
         List<WebElement> possiveisUserNames = li.findElements(By.tagName("a"));
 
         for (WebElement possivelUserName : possiveisUserNames) {
@@ -142,7 +159,7 @@ public class Scraper {
             }
         }
 
-        return userScraping.execute(webDriverControl, userName);
+        return userName;
     }
 
     private void findUser(WebDriverControl webDriverControl, String username) throws InterruptedException {

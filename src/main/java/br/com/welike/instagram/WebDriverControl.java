@@ -34,7 +34,7 @@ public class WebDriverControl {
     private WebDriver getWebDriver() throws FileNotFoundException {
         WebDriver driver = null;
         if (StringUtils.contains(webdriver, "chrome")) {
-            File file = ResourceUtils.getFile("classpath:driver/chromedriver.exe");
+            File file = ResourceUtils.getFile("classpath:driver/chromedriver");
             System.setProperty(webdriver, file.getAbsolutePath());
 //            ChromeOptions options = new ChromeOptions();
 //            options.addArguments("--headless");
@@ -49,13 +49,10 @@ public class WebDriverControl {
         return driver;
     }
 
-    public WebDriverControl getWebDriverControl() throws FileNotFoundException {
-        WebDriverControl webDriverControl = new WebDriverControl();
+    public void setWebDriverControl() throws FileNotFoundException {
         WebDriver driver = getWebDriver();
 
-        webDriverControl.setDriver(driver);
-        webDriverControl.setWait(new WebDriverWait(driver, 20));
-
-        return webDriverControl;
+        this.setDriver(driver);
+        this.setWait(new WebDriverWait(driver, 20));
     }
 }

@@ -36,6 +36,14 @@ public class UserScraping {
               .findElement(By.xpath(LINK_SEGUINDO))
               .findElement(By.tagName("span"))
               .getAttribute("title");
+
+        if (usuariosSeguindo.isEmpty()) {
+            usuariosSeguindo = webDriverControl.getDriver()
+                    .findElement(By.xpath(LINK_SEGUINDO))
+                    .findElement(By.tagName("span"))
+                    .getText();
+        }
+
         return Integer.parseInt(usuariosSeguindo.replace(".", ""));
     }
 
@@ -44,6 +52,14 @@ public class UserScraping {
                                           .findElement(By.xpath(LINK_SEGUIDORES))
                                           .findElement(By.tagName("span"))
                                           .getAttribute("title");
+
+        if (seguidores.isEmpty()) {
+            seguidores = webDriverControl.getDriver()
+                    .findElement(By.xpath(LINK_SEGUINDO))
+                    .findElement(By.tagName("span"))
+                    .getText();
+        }
+
         return Integer.parseInt(seguidores.replace(".", ""));
     }
 
