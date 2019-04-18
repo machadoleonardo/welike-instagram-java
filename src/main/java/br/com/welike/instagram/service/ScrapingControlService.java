@@ -30,15 +30,14 @@ public class ScrapingControlService {
         this.scraper = scraper;
     }
 
-    public String startScraping(ScrapingRequest request) throws InterruptedException, IOException, AWTException {
+    public String startScraping(ScrapingRequest request) {
         String transactionId = String.valueOf(new Date().getTime());
 
         saveTransaction(transactionId);
         saveStatusControl(transactionId, request.getUserName().size());
 
-        for (String username : request.getUserName()) {
-            scraper.execute(username, transactionId);
-        }
+        for (String username : request.getUserName())
+            scraper.execute(username, transactionId, request.getMaxFollowers());
 
         return transactionId;
     }

@@ -33,11 +33,7 @@ public class ScrapingController {
     @ResponseStatus(HttpStatus.OK)
     public ScrapingResponse scrapping(@RequestBody @Valid ScrapingRequest request) {
         ScrapingResponse scrapingResponse = new ScrapingResponse();
-        try {
-            scrapingResponse.setTransactionId(scrapingControlService.startScraping(request));
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        scrapingResponse.setTransactionId(scrapingControlService.startScraping(request));
         return scrapingResponse;
     }
 

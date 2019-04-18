@@ -1,7 +1,9 @@
 package br.com.welike.instagram.scraping;
 
 import br.com.welike.instagram.WebDriverControl;
+import br.com.welike.instagram.model.Error;
 import br.com.welike.instagram.model.Influencer;
+import br.com.welike.instagram.service.ErrorService;
 import br.com.welike.instagram.service.InfluencerService;
 import br.com.welike.instagram.service.ScrapingService;
 import org.openqa.selenium.*;
@@ -14,7 +16,6 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import java.awt.*;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -54,58 +55,64 @@ public class Scraper {
     private final InfluencerService influencerService;
     private final ScrapingService scrapingService;
     private final BeanFactory beanFactory;
+    private final ErrorService errorService;
 
     @Autowired
-    public Scraper(InfluencerService influencerService, ScrapingService scrapingService, BeanFactory beanFactory) {
+    public Scraper(InfluencerService influencerService, ScrapingService scrapingService, BeanFactory beanFactory, ErrorService errorService) {
         this.influencerService = influencerService;
         this.scrapingService = scrapingService;
         this.beanFactory = beanFactory;
+        this.errorService = errorService;
     }
 
     @Async
-    public void execute(String username, String transactionId) throws InterruptedException, IOException, AWTException {
-        WebDriverControl webDriverControl = beanFactory.getBean(WebDriverControl.class);
-        webDriverControl.setWebDriverControl();
+    public void execute(String username, String transactionId, Integer maxFlowers) {
+        try{
+            WebDriverControl webDriverControl = beanFactory.getBean(WebDriverControl.class);
+            webDriverControl.setWebDriverControl();
 
-        webDriverControl.getDriver().get(HOST_INSTAGRAM);
+            webDriverControl.getDriver().get(HOST_INSTAGRAM);
 
-        List<Cookie> cookies = new ArrayList<>(0);
+            List<Cookie> cookies = new ArrayList<>(0);
 
-        cookies.add(new Cookie("csrftoken", "9CYUp865ljjZ9wzi2bFcgzCvX5YToRTQ"));
-        cookies.add(new Cookie("ds_user_id", "8680661754"));
-        cookies.add(new Cookie("mcd", "3"));
-        cookies.add(new Cookie("mid", "XD96wQAEAAEE3tKTsRIWuSH1kdIV"));
-        cookies.add(new Cookie("rur", "ATN"));
-        cookies.add(new Cookie("sessionid", "8680661754%3Ays0O9VpkOq0hGU%3A10"));
-        cookies.add(new Cookie("shbid", "3166"));
-        cookies.add(new Cookie("shbts", "1555342831.1156552"));
-        cookies.add(new Cookie("urlgen", "\"{\\\"189.39.26.163\\\": 16735}:1hG3ik:GQfp_Z9WjLD0rzEdaJKnhKj4XHs\""));
+            cookies.add(new Cookie("csrftoken", "9CYUp865ljjZ9wzi2bFcgzCvX5YToRTQ"));
+            cookies.add(new Cookie("ds_user_id", "8680661754"));
+            cookies.add(new Cookie("mcd", "3"));
+            cookies.add(new Cookie("mid", "XD96wQAEAAEE3tKTsRIWuSH1kdIV"));
+            cookies.add(new Cookie("rur", "ATN"));
+            cookies.add(new Cookie("sessionid", "8680661754%3Ays0O9VpkOq0hGU%3A10"));
+            cookies.add(new Cookie("shbid", "3166"));
+            cookies.add(new Cookie("shbts", "1555342831.1156552"));
+            cookies.add(new Cookie("urlgen", "\"{\\\"189.39.26.163\\\": 16735}:1hG3ik:GQfp_Z9WjLD0rzEdaJKnhKj4XHs\""));
 
-        for(Cookie cookie : cookies) {
-            webDriverControl.getDriver().manage().addCookie(cookie);
+            for(Cookie cookie : cookies) {
+                webDriverControl.getDriver().manage().addCookie(cookie);
+            }
+
+            webDriverControl.getDriver().navigate().refresh();
+
+            Thread.sleep(5000);
+            if (scrapingService.exists(webDriverControl, LINK_BAIXAR_APLICATIVO)) {
+                webDriverControl.getDriver().findElement(By.xpath(LINK_NAO_BAIXAR_APLICATIVO)).click();
+            }
+            if (scrapingService.exists(webDriverControl, BUTTON_NAO_ATIVAR_NOTIFICACOES)) {
+                webDriverControl.getDriver().findElement(By.xpath(BUTTON_NAO_ATIVAR_NOTIFICACOES)).click();
+            }
+
+            findUser(webDriverControl, username);
+            Thread.sleep(5000);
+
+            List<Influencer> seguidores = findSeguidores(webDriverControl, username, maxFlowers);
+
+            webDriverControl.getDriver().close();
+
+            influencerService.save(seguidores, transactionId);
+        } catch (Exception e) {
+            errorService.save(new Error(null, e.getMessage()));
         }
-
-        webDriverControl.getDriver().navigate().refresh();
-
-        Thread.sleep(5000);
-        if (scrapingService.exists(webDriverControl, LINK_BAIXAR_APLICATIVO)) {
-            webDriverControl.getDriver().findElement(By.xpath(LINK_NAO_BAIXAR_APLICATIVO)).click();
-        }
-        if (scrapingService.exists(webDriverControl, BUTTON_NAO_ATIVAR_NOTIFICACOES)) {
-            webDriverControl.getDriver().findElement(By.xpath(BUTTON_NAO_ATIVAR_NOTIFICACOES)).click();
-        }
-
-        findUser(webDriverControl, username);
-        Thread.sleep(5000);
-
-        List<Influencer> seguidores = findSeguidores(webDriverControl, username);
-
-        webDriverControl.getDriver().close();
-
-        influencerService.save(seguidores, transactionId);
     }
 
-    private List<Influencer> findSeguidores(WebDriverControl webDriverControl, String username) throws InterruptedException, AWTException {
+    private List<Influencer> findSeguidores(WebDriverControl webDriverControl, String username, Integer maxFlowers) throws InterruptedException, AWTException {
         List<Influencer> influencers = new ArrayList<>(0);
 
         webDriverControl.getDriver().findElement(By.xpath(String.format(LINK_SEGUINDO, username))).click();
@@ -120,11 +127,14 @@ public class Scraper {
                 .map(this::mapUsuariosSeguindoToUserName)
                 .collect(Collectors.toList());
 
-//        for (String userNameOfList : userNameList) {
-//            influencers.add(mapUserNameToInfluencer(webDriverControl, userNameOfList));
-//        }
+        for (String userNameOfList : userNameList) {
+            Influencer influencer = mapUserNameToInfluencer(webDriverControl, userNameOfList);
+            if (influencer.getFollows().equals(maxFlowers)) {
+                influencers.add(influencer);
+            }
+        }
 
-        influencers.add(mapUserNameToInfluencer(webDriverControl, userNameList.get(0)));
+//        influencers.add(mapUserNameToInfluencer(webDriverControl, userNameList.get(0)));
 
         return influencers;
     }

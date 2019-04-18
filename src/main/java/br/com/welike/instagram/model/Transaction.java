@@ -36,7 +36,7 @@ public class Transaction {
     private String status;
 
     @JsonInclude
-    @ManyToMany(fetch = FetchType.LAZY)
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "transaction_influencer",
             joinColumns = @JoinColumn(
                     name = "transaction_id", referencedColumnName = "id"),

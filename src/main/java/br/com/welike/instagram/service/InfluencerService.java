@@ -29,6 +29,8 @@ public class InfluencerService {
         repository.saveAll(influencers);
 
         Transaction transaction = transactionService.findByTransactionId(transactionId);
+
+        influencers.addAll(transaction.getInfluencers());
         transaction.setInfluencers(new HashSet<>(influencers));
 
         transactionService.save(transaction);

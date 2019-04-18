@@ -20,10 +20,16 @@ public class TransactionService {
 
     public Transaction getStatus(String transactionId) {
         StatusControl statusControl = statusControlService.findByTransactionId(transactionId);
-        if (!statusControl.getScrapings().equals(statusControl.getTotalScrapings())) {
+        Transaction transactionIdEntity = findByTransactionId(transactionId);
+        if (!isErrorOrSuccess(statusControl, transactionIdEntity)) {
             return getTransactionEmAnadamento(transactionId);
         }
-        return findByTransactionId(transactionId);
+        return transactionIdEntity;
+    }
+
+    private boolean isErrorOrSuccess(StatusControl statusControl, Transaction transactionId) {
+        return statusControl.getScrapings().equals(statusControl.getTotalScrapings()) ||
+                transactionId.getStatus().equals("Error");
     }
 
     private Transaction getTransactionEmAnadamento(String transactionId) {

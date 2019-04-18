@@ -13,4 +13,7 @@ public class ScrapingRequest {
     @NotNull(message = "Campo username é obrigatório")
     private List<String> userName;
 
+    @NotNull(message = "Campo maxFollowers é obrigatório")
+    private Integer maxFollowers;
+
 }
