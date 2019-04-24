@@ -1,8 +1,9 @@
 package br.com.welike.instagram.service;
 
-import br.com.welike.instagram.model.StatusControl;
+import br.com.welike.instagram.converter.TransactionResponseConverter;
 import br.com.welike.instagram.model.Transaction;
 import br.com.welike.instagram.repository.TransactionRepository;
+import br.com.welike.instagram.response.TransactionResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -10,35 +11,16 @@ import org.springframework.stereotype.Service;
 public class TransactionService {
 
     private final TransactionRepository repository;
-    private final StatusControlService statusControlService;
+    private final TransactionResponseConverter transactionResponseConverter;
 
     @Autowired
-    public TransactionService(TransactionRepository repository, StatusControlService statusControlService) {
+    public TransactionService(TransactionRepository repository, TransactionResponseConverter transactionResponseConverter) {
         this.repository = repository;
-        this.statusControlService = statusControlService;
+        this.transactionResponseConverter = transactionResponseConverter;
     }
 
-    public Transaction getStatus(String transactionId) {
-        StatusControl statusControl = statusControlService.findByTransactionId(transactionId);
-        Transaction transactionIdEntity = findByTransactionId(transactionId);
-        if (!isErrorOrSuccess(statusControl, transactionIdEntity)) {
-            return getTransactionEmAnadamento(transactionId);
-        }
-        return transactionIdEntity;
-    }
-
-    private boolean isErrorOrSuccess(StatusControl statusControl, Transaction transactionId) {
-        return statusControl.getScrapings().equals(statusControl.getTotalScrapings()) ||
-                transactionId.getStatus().equals("Error");
-    }
-
-    private Transaction getTransactionEmAnadamento(String transactionId) {
-        Transaction transaction = new Transaction();
-
-        transaction.setStatus("Em andamento");
-        transaction.setTransactionId(transactionId);
-
-        return transaction;
+    public TransactionResponse getStatus(String transactionId) {
+        return transactionResponseConverter.encode(findByTransactionId(transactionId));
     }
 
     public Transaction findByTransactionId(String transactionId) {
@@ -46,7 +28,7 @@ public class TransactionService {
     }
 
     public void save(Transaction transaction) {
-        this.repository. save(transaction);
+        this.repository.save(transaction);
     }
 
 }

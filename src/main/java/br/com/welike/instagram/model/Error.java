@@ -23,4 +23,8 @@ public class Error {
 
     @Column
     private String message;
+
+    @OneToOne
+    @JoinColumn(name = "transaction_id")
+    private Transaction transaction;
 }

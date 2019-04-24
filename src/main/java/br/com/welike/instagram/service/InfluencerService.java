@@ -1,5 +1,6 @@
 package br.com.welike.instagram.service;
 
+import br.com.welike.instagram.enums.TransactionEnum;
 import br.com.welike.instagram.model.Influencer;
 import br.com.welike.instagram.model.StatusControl;
 import br.com.welike.instagram.model.Transaction;
@@ -29,14 +30,19 @@ public class InfluencerService {
         repository.saveAll(influencers);
 
         Transaction transaction = transactionService.findByTransactionId(transactionId);
+        StatusControl statusControl = statusControlService.findByTransactionId(transaction.getTransactionId());
+
+        Integer newScrapings = statusControl.getScrapings() + 1;
+        statusControl.setScrapings(newScrapings);
+
+        if (newScrapings.equals(statusControl.getTotalScrapings())) {
+            transaction.setStatus(TransactionEnum.SUCESSO.getDescription());
+        }
 
         influencers.addAll(transaction.getInfluencers());
         transaction.setInfluencers(new HashSet<>(influencers));
 
         transactionService.save(transaction);
-
-        StatusControl statusControl = statusControlService.findByTransactionId(transactionId);
-        statusControl.setScrapings(statusControl.getScrapings() + 1);
         statusControlService.save(statusControl);
     }
 }

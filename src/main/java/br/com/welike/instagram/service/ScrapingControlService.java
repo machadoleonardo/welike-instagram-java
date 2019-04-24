@@ -1,5 +1,6 @@
 package br.com.welike.instagram.service;
 
+import br.com.welike.instagram.enums.TransactionEnum;
 import br.com.welike.instagram.model.StatusControl;
 import br.com.welike.instagram.model.Transaction;
 import br.com.welike.instagram.request.ScrapingRequest;
@@ -36,8 +37,9 @@ public class ScrapingControlService {
         saveTransaction(transactionId);
         saveStatusControl(transactionId, request.getUserName().size());
 
-        for (String username : request.getUserName())
+        for (String username : request.getUserName()) {
             scraper.execute(username, transactionId, request.getMaxFollowers());
+        }
 
         return transactionId;
     }
@@ -46,7 +48,7 @@ public class ScrapingControlService {
         Transaction transaction = new Transaction();
 
         transaction.setTransactionId(transactionId);
-        transaction.setStatus("Sucesso");
+        transaction.setStatus(TransactionEnum.EM_ANDAMENTO.getDescription());
 
         transactionService.save(transaction);
     }

@@ -1,11 +1,14 @@
 package br.com.welike.instagram.scraping;
 
 import br.com.welike.instagram.WebDriverControl;
+import br.com.welike.instagram.enums.TransactionEnum;
 import br.com.welike.instagram.model.Error;
 import br.com.welike.instagram.model.Influencer;
+import br.com.welike.instagram.model.Transaction;
 import br.com.welike.instagram.service.ErrorService;
 import br.com.welike.instagram.service.InfluencerService;
 import br.com.welike.instagram.service.ScrapingService;
+import br.com.welike.instagram.service.TransactionService;
 import org.openqa.selenium.*;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
@@ -56,13 +59,17 @@ public class Scraper {
     private final ScrapingService scrapingService;
     private final BeanFactory beanFactory;
     private final ErrorService errorService;
+    private final TransactionService transactionService;
 
     @Autowired
-    public Scraper(InfluencerService influencerService, ScrapingService scrapingService, BeanFactory beanFactory, ErrorService errorService) {
+    public Scraper(InfluencerService influencerService, ScrapingService scrapingService,
+                   BeanFactory beanFactory, ErrorService errorService,
+                   TransactionService transactionService) {
         this.influencerService = influencerService;
         this.scrapingService = scrapingService;
         this.beanFactory = beanFactory;
         this.errorService = errorService;
+        this.transactionService = transactionService;
     }
 
     @Async
@@ -108,7 +115,11 @@ public class Scraper {
 
             influencerService.save(seguidores, transactionId);
         } catch (Exception e) {
-            errorService.save(new Error(null, e.getMessage()));
+            Transaction transaction = transactionService.findByTransactionId(transactionId);
+            transaction.setStatus(TransactionEnum.ERRO.getDescription());
+
+            transactionService.save(transaction);
+            errorService.save(new Error(null, e.getMessage(), transaction));
         }
     }
 
@@ -129,7 +140,7 @@ public class Scraper {
 
         for (String userNameOfList : userNameList) {
             Influencer influencer = mapUserNameToInfluencer(webDriverControl, userNameOfList);
-            if (influencer.getFollows().equals(maxFlowers)) {
+            if (influencer.getFollows() > maxFlowers) {
                 influencers.add(influencer);
             }
         }
