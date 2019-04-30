@@ -17,5 +17,6 @@ public class TransactionResponse {
     private String status;
     private Integer totalInfluencers;
     private List<Influencer> influencers;
+    private String erro;
 
 }

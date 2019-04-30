@@ -35,6 +35,9 @@ public class Transaction {
     @Column
     private String status;
 
+    @OneToOne
+    private Error error;
+
     @JsonInclude
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "transaction_influencer",
