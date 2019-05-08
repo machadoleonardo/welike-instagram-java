@@ -73,7 +73,7 @@ public class Scraper {
     }
 
     @Async
-    public void execute(String username, String transactionId, Integer maxFlowers) {
+    public void execute(String username, String transactionId, Integer minFlowers) {
         try{
             WebDriverControl webDriverControl = beanFactory.getBean(WebDriverControl.class);
             webDriverControl.setWebDriverControl();
@@ -109,7 +109,7 @@ public class Scraper {
             findUser(webDriverControl, username);
             Thread.sleep(5000);
 
-            List<Influencer> seguidores = findSeguidores(webDriverControl, username, maxFlowers);
+            List<Influencer> seguidores = findSeguidores(webDriverControl, username, minFlowers);
 
             webDriverControl.getDriver().close();
 
@@ -120,10 +120,11 @@ public class Scraper {
 
             transactionService.save(transaction);
             errorService.save(new Error(null, e.getMessage(), transaction));
+            e.printStackTrace();
         }
     }
 
-    private List<Influencer> findSeguidores(WebDriverControl webDriverControl, String username, Integer maxFlowers) throws InterruptedException, AWTException {
+    private List<Influencer> findSeguidores(WebDriverControl webDriverControl, String username, Integer minFlowers) throws InterruptedException, AWTException {
         List<Influencer> influencers = new ArrayList<>(0);
 
         webDriverControl.getDriver().findElement(By.xpath(String.format(LINK_SEGUINDO, username))).click();
@@ -140,7 +141,7 @@ public class Scraper {
 
         for (String userNameOfList : userNameList) {
             Influencer influencer = mapUserNameToInfluencer(webDriverControl, userNameOfList);
-            if (influencer.getFollows() > maxFlowers) {
+            if (influencer.getFollows() > minFlowers) {
                 influencers.add(influencer);
             }
         }
@@ -151,7 +152,7 @@ public class Scraper {
     }
 
     private Influencer mapUserNameToInfluencer(WebDriverControl webDriverControl, String username) throws InterruptedException {
-        UserScraping userScraping = new UserScraping();
+        UserScraping userScraping = new UserScraping(scrapingService);
         return userScraping.execute(webDriverControl, username);
     }
 

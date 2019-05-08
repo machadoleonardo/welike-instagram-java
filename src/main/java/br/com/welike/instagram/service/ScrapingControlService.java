@@ -38,7 +38,7 @@ public class ScrapingControlService {
         saveStatusControl(transactionId, request.getUserName().size());
 
         for (String username : request.getUserName()) {
-            scraper.execute(username, transactionId, request.getMaxFollowers());
+            scraper.execute(username, transactionId, request.getMinFollowers());
         }
 
         return transactionId;

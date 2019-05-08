@@ -1,6 +1,5 @@
 package br.com.welike.instagram.controller;
 
-import br.com.welike.instagram.model.Transaction;
 import br.com.welike.instagram.request.ScrapingRequest;
 import br.com.welike.instagram.response.ScrapingResponse;
 import br.com.welike.instagram.response.TransactionResponse;

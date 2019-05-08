@@ -34,7 +34,8 @@ public class WebDriverControl {
     private WebDriver getWebDriver() throws FileNotFoundException {
         WebDriver driver = null;
         if (StringUtils.contains(webdriver, "chrome")) {
-            File file = ResourceUtils.getFile("classpath:driver/chromedriver");
+//            File file = ResourceUtils.getFile("classpath:driver/chromedriver");
+            File file = ResourceUtils.getFile("classpath:driver/chromedriver.exe");
             System.setProperty(webdriver, file.getAbsolutePath());
 //            ChromeOptions options = new ChromeOptions();
 //            options.addArguments("--headless");

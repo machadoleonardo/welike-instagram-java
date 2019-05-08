@@ -35,8 +35,8 @@ public class Transaction {
     @Column
     private String status;
 
-    @OneToOne
-    private Error error;
+    @OneToMany(mappedBy="transaction")
+    private Set<Error> errors;
 
     @JsonInclude
     @ManyToMany(fetch = FetchType.EAGER)

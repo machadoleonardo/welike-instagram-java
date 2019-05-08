@@ -14,6 +14,6 @@ public class ScrapingRequest {
     private List<String> userName;
 
     @NotNull(message = "Campo maxFollowers é obrigatório")
-    private Integer maxFollowers;
+    private Integer minFollowers;
 
 }

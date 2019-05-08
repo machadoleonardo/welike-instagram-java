@@ -21,10 +21,10 @@ public class Error {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    @Column
+    @Column(columnDefinition = "LONGTEXT")
     private String message;
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "transaction_id")
     private Transaction transaction;
 }
