@@ -22,6 +22,9 @@ public class UserScraping {
     private final String IMG_FOTO_PERFIL = "//*[@alt='Foto do perfil de %s']";
     private final String H2_CONTA_PRIVADA = "//*/h2[text()='Esta conta é privada']";
 
+
+    private final String IMG_PRIMEIRA_IMAGEM_DA_TELA = "//*/img";
+
     private WebDriverControl webDriverControl;
 
     @Autowired
@@ -62,7 +65,7 @@ public class UserScraping {
 
     private String getProfilePicture(String username) {
         return webDriverControl.getDriver()
-                               .findElement(By.xpath(String.format(IMG_FOTO_PERFIL, username)))
+                               .findElement(By.xpath(IMG_PRIMEIRA_IMAGEM_DA_TELA))
                                .getAttribute("src");
     }
 
@@ -75,6 +78,13 @@ public class UserScraping {
                     .findElement(By.xpath(spanUsers))
                     .findElement(By.tagName("span"))
                     .getAttribute("title");
+
+            if (usuariosSeguindo.isEmpty()) {
+                usuariosSeguindo = webDriverControl.getDriver()
+                        .findElement(By.xpath(spanUsers))
+                        .findElement(By.tagName("span"))
+                        .getText();
+            }
         } else {
             // QUANDO A CONTA É PÚBLICA O NÚMERO DE SEGUIDORES/SEGUINDO FICA DENTRO DE UM LINK
             usuariosSeguindo = webDriverControl.getDriver()
