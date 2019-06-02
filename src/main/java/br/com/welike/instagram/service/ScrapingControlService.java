@@ -5,17 +5,10 @@ import br.com.welike.instagram.model.StatusControl;
 import br.com.welike.instagram.model.Transaction;
 import br.com.welike.instagram.request.ScrapingRequest;
 import br.com.welike.instagram.scraping.Scraper;
-import org.openqa.selenium.By;
-import org.openqa.selenium.Cookie;
-import org.openqa.selenium.WebDriver;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.awt.*;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.Date;
-import java.util.Set;
 
 @Service
 public class ScrapingControlService {
@@ -35,9 +28,9 @@ public class ScrapingControlService {
         String transactionId = String.valueOf(new Date().getTime());
 
         saveTransaction(transactionId);
-        saveStatusControl(transactionId, request.getUserName().size());
+        saveStatusControl(transactionId, request.getSeguindo().size());
 
-        for (String username : request.getUserName()) {
+        for (String username : request.getSeguindo()) {
             scraper.execute(username, transactionId, request.getMinFollowers());
         }
 

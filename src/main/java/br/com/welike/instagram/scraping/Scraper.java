@@ -21,6 +21,7 @@ import org.springframework.stereotype.Component;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 @Component
@@ -126,27 +127,44 @@ public class Scraper {
 
     private List<Influencer> findSeguidores(WebDriverControl webDriverControl, String username, Integer minFlowers) throws InterruptedException, AWTException {
         List<Influencer> influencers = new ArrayList<>(0);
+        AtomicReference<List<String>> userNameList = new AtomicReference<>();
 
         webDriverControl.getDriver().findElement(By.xpath(String.format(LINK_SEGUINDO, username))).click();
         scrapingService.waitVisibility(webDriverControl.getWait(), BUTTON_SEGUINDO);
         Thread.sleep(1000);
 
 //        moveMouse(driver, driver.findElement(By.xpath(DIALOG)));
-
         List<WebElement> usuariosSeguindo = webDriverControl.getDriver().findElement(By.xpath(MODAL_SEGUINDO))
-                                                  .findElements(By.tagName("li"));
-        List<String> userNameList = usuariosSeguindo.stream()
-                .map(this::mapUsuariosSeguindoToUserName)
-                .collect(Collectors.toList());
+                .findElements(By.tagName("li"));
 
-        for (String userNameOfList : userNameList) {
+        scrapingService.retryConsumer(userNameList, (list) -> {
+            userNameList.set(usuariosSeguindo.stream()
+                    .map(this::mapUsuariosSeguindoToUserName)
+                    .collect(Collectors.toList()));
+        });
+
+//        try {
+//            List<WebElement> usuariosSeguindo = webDriverControl.getDriver().findElement(By.xpath(MODAL_SEGUINDO))
+//                    .findElements(By.tagName("li"));
+//
+//            userNameList = usuariosSeguindo.stream()
+//                    .map(this::mapUsuariosSeguindoToUserName)
+//                    .collect(Collectors.toList());
+//        } catch(StaleElementReferenceException ex) {
+//            List<WebElement> usuariosSeguindo = webDriverControl.getDriver().findElement(By.xpath(MODAL_SEGUINDO))
+//                    .findElements(By.tagName("li"));
+//
+//            userNameList = usuariosSeguindo.stream()
+//                    .map(this::mapUsuariosSeguindoToUserName)
+//                    .collect(Collectors.toList());
+//        }
+
+        for (String userNameOfList : userNameList.get()) {
             Influencer influencer = mapUserNameToInfluencer(webDriverControl, userNameOfList);
             if (influencer.getFollows() > minFlowers) {
                 influencers.add(influencer);
             }
         }
-
-//        influencers.add(mapUserNameToInfluencer(webDriverControl, userNameList.get(0)));
 
         return influencers;
     }
@@ -162,9 +180,11 @@ public class Scraper {
             Thread.sleep(1000);
             actions.moveToElement(element).click().sendKeys(Keys.ARROW_DOWN).build().perform();
         }
-        for (int i = 0; i < 6; i++) {
-            actions.moveToElement(element).click().sendKeys(Keys.END).build().perform();
-        }
+
+        actions.moveToElement(element).click().sendKeys(Keys.END).build().perform();
+//        for (int i = 0; i < 6; i++) {
+//            actions.moveToElement(element).click().sendKeys(Keys.END).build().perform();
+//        }
 
 //        wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(LINK_EXPLORE_PEOPLE)));
 //        driver.findElement(By.xpath(LINK_EXPLORE_PEOPLE)).click();

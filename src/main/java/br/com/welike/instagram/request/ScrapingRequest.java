@@ -10,8 +10,8 @@ import java.util.List;
 @Setter
 public class ScrapingRequest {
 
-    @NotNull(message = "Campo username é obrigatório")
-    private List<String> userName;
+    private List<String> seguindo;
+    private List<String> seguidores;
 
     @NotNull(message = "Campo maxFollowers é obrigatório")
     private Integer minFollowers;
