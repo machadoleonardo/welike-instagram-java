@@ -9,6 +9,7 @@ import br.com.welike.instagram.service.ErrorService;
 import br.com.welike.instagram.service.InfluencerService;
 import br.com.welike.instagram.service.ScrapingService;
 import br.com.welike.instagram.service.TransactionService;
+import com.google.common.collect.Iterables;
 import org.openqa.selenium.*;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
@@ -42,13 +43,15 @@ public class Scraper {
     private final String LINK_SEGUINDO = "//*[@href='/%s/following/']";
     private final String DIV_TABELA_PESSOAS_SEGUINDO = "//*[@id=\"react-root\"]/section/main/div[2]/ul/div";
     private final String MODAL_SEGUINDO = "//*[@role='dialog']";
-    private final String BUTTON_SEGUINDO = "//*/button[text()='Seguir']";
+    private final String BUTTON_SEGUIR = "//*/button[text()='Seguir']";
+    private final String BUTTON_SEGUINDO = "//*/button[text()='Seguindo']";
     private final String LINK_USER_SELECTED = "//*/span[text()='%s']";
     private final String DIALOG = "//*[@role='dialog']";
     private final String LINK_EXPLORE_PEOPLE = "//*[@href='/explore/people/']";
     private final String LI_LAST_SEGUIDOR = "//*[@role='dialog']/descendant::li[last()]";
     private final String LINK_BAIXAR_APLICATIVO = "//*/a[text()='Baixar aplicativo']";
     private final String LINK_NAO_BAIXAR_APLICATIVO = "//*/a[text()='Agora não']";
+    private final String LOADING = "/html/body/div[3]/div/div[2]/ul/div/li[157]/div";
 
     @Value("${instagram.auth.login}")
     private String login;
@@ -125,41 +128,16 @@ public class Scraper {
         }
     }
 
-    private List<Influencer> findSeguidores(WebDriverControl webDriverControl, String username, Integer minFlowers) throws InterruptedException, AWTException {
+    private List<Influencer> findSeguidores(WebDriverControl webDriverControl, String username, Integer minFlowers) throws InterruptedException {
         List<Influencer> influencers = new ArrayList<>(0);
-        AtomicReference<List<String>> userNameList = new AtomicReference<>();
 
         webDriverControl.getDriver().findElement(By.xpath(String.format(LINK_SEGUINDO, username))).click();
-        scrapingService.waitVisibility(webDriverControl.getWait(), BUTTON_SEGUINDO);
+        scrapingService.waitVisibility(webDriverControl.getWait(), BUTTON_SEGUIR);
         Thread.sleep(1000);
 
-//        moveMouse(driver, driver.findElement(By.xpath(DIALOG)));
-        List<WebElement> usuariosSeguindo = webDriverControl.getDriver().findElement(By.xpath(MODAL_SEGUINDO))
-                .findElements(By.tagName("li"));
+        List<String> userNameList = getElementUsuariosSeguindo(webDriverControl.getDriver());
 
-        scrapingService.retryConsumer(userNameList, (list) -> {
-            userNameList.set(usuariosSeguindo.stream()
-                    .map(this::mapUsuariosSeguindoToUserName)
-                    .collect(Collectors.toList()));
-        });
-
-//        try {
-//            List<WebElement> usuariosSeguindo = webDriverControl.getDriver().findElement(By.xpath(MODAL_SEGUINDO))
-//                    .findElements(By.tagName("li"));
-//
-//            userNameList = usuariosSeguindo.stream()
-//                    .map(this::mapUsuariosSeguindoToUserName)
-//                    .collect(Collectors.toList());
-//        } catch(StaleElementReferenceException ex) {
-//            List<WebElement> usuariosSeguindo = webDriverControl.getDriver().findElement(By.xpath(MODAL_SEGUINDO))
-//                    .findElements(By.tagName("li"));
-//
-//            userNameList = usuariosSeguindo.stream()
-//                    .map(this::mapUsuariosSeguindoToUserName)
-//                    .collect(Collectors.toList());
-//        }
-
-        for (String userNameOfList : userNameList.get()) {
+        for (String userNameOfList : userNameList) {
             Influencer influencer = mapUserNameToInfluencer(webDriverControl, userNameOfList);
             if (influencer.getFollows() > minFlowers) {
                 influencers.add(influencer);
@@ -169,25 +147,24 @@ public class Scraper {
         return influencers;
     }
 
-    private Influencer mapUserNameToInfluencer(WebDriverControl webDriverControl, String username) throws InterruptedException {
-        UserScraping userScraping = new UserScraping(scrapingService);
-        return userScraping.execute(webDriverControl, username);
-    }
+    private List<String> getElementUsuariosSeguindo(WebDriver driver) throws InterruptedException {
+        boolean existsElements = true;
+        List<String> usuariosSeguindo = new ArrayList<>(0);
 
-    private void moveMouse(WebDriver driver, WebElement element) throws AWTException, InterruptedException {
-        Actions actions = new Actions(driver);
-        for (int i = 0; i < 8; i++) {
-            Thread.sleep(1000);
-            actions.moveToElement(element).click().sendKeys(Keys.ARROW_DOWN).build().perform();
+        while (existsElements) {
+            Thread.sleep(2000);
+            List<WebElement> usuariosDaTela = driver.findElement(By.xpath(MODAL_SEGUINDO)).findElements(By.tagName("li"));
+            existsElements = usuariosDaTela.size() != 0;
+
+            if (existsElements) {
+                usuariosSeguindo.addAll(usuariosDaTela.stream().map(this::mapUsuariosSeguindoToUserName).collect(Collectors.toList()));
+                deleteElements(driver, usuariosDaTela);
+                Thread.sleep(1000);
+                moveMouse(driver, driver.findElement(By.xpath(DIALOG)));
+            }
         }
 
-        actions.moveToElement(element).click().sendKeys(Keys.END).build().perform();
-//        for (int i = 0; i < 6; i++) {
-//            actions.moveToElement(element).click().sendKeys(Keys.END).build().perform();
-//        }
-
-//        wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(LINK_EXPLORE_PEOPLE)));
-//        driver.findElement(By.xpath(LINK_EXPLORE_PEOPLE)).click();
+        return usuariosSeguindo;
     }
 
     private String mapUsuariosSeguindoToUserName(WebElement li) {
@@ -202,6 +179,24 @@ public class Scraper {
         }
 
         return userName;
+    }
+
+    private void deleteElements(WebDriver driver, List<WebElement> lis) {
+        lis.forEach(li -> scrapingService.executeJavaScript(driver,"arguments[0].remove()", li));
+    }
+
+    private Influencer mapUserNameToInfluencer(WebDriverControl webDriverControl, String username) throws InterruptedException {
+        UserScraping userScraping = new UserScraping(scrapingService);
+        return userScraping.execute(webDriverControl, username);
+    }
+
+    private void moveMouse(WebDriver driver, WebElement element) {
+        Actions actions = new Actions(driver);
+        actions.moveToElement(element)
+                .click()
+                .sendKeys(Keys.ARROW_DOWN)
+                .build()
+                .perform();
     }
 
     private void findUser(WebDriverControl webDriverControl, String username) throws InterruptedException {

@@ -12,7 +12,7 @@ import java.util.function.Consumer;
 public class ScrapingService<T> {
 
     public boolean exists(WebDriverControl webDriverControl, String xpath) {
-        return webDriverControl.getDriver().findElements(By.xpath(xpath)). size() != 0;
+        return webDriverControl.getDriver().findElements(By.xpath(xpath)).size() != 0;
     }
 
     public void waitVisibility(WebDriverWait wait, String xpath) {
@@ -22,6 +22,11 @@ public class ScrapingService<T> {
     public void executeJavaScript(WebDriver driver, String script) {
         JavascriptExecutor executor = (JavascriptExecutor)driver;
         executor.executeScript(script);
+    }
+
+    public void executeJavaScript(WebDriver driver, String script, WebElement element) {
+        JavascriptExecutor executor = (JavascriptExecutor)driver;
+        executor.executeScript(script, element);
     }
 
     public void retryConsumer(T t, Consumer<T> consumer) {
@@ -34,7 +39,7 @@ public class ScrapingService<T> {
 
     public WebElement getElementByJavaScript(WebDriver driver, String script) {
         JavascriptExecutor executor = (JavascriptExecutor)driver;
-	    return (WebElement)executor.executeScript("return arguments[0].parentNode;");
+	    return (WebElement)executor.executeScript(script);
     }
 
     private void setSmallResolution(WebDriver driver) {

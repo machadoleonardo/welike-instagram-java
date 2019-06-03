@@ -13,7 +13,7 @@ public class ScrapingRequest {
     private List<String> seguindo;
     private List<String> seguidores;
 
-    @NotNull(message = "Campo maxFollowers é obrigatório")
+    @NotNull(message = "Campo minFollowers é obrigatório")
     private Integer minFollowers;
 
 }
