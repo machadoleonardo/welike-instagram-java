@@ -8,13 +8,14 @@ import lombok.Setter;
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
+import java.util.Set;
 
 @Getter
 @Setter
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
-public class Influencer implements Serializable {
+public class Reference implements Serializable {
 
     @Id
     @NotNull
@@ -52,4 +53,12 @@ public class Influencer implements Serializable {
 
     @Column
     private Integer followedBy;
+
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(name = "reference_influencer",
+            joinColumns = @JoinColumn(
+                    name = "reference_id", referencedColumnName = "id"),
+            inverseJoinColumns = @JoinColumn(
+                    name = "influencer_id", referencedColumnName = "id"))
+    private Set<Influencer> influencers;
 }

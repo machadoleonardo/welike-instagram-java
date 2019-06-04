@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class InfluencerService {
@@ -27,7 +28,10 @@ public class InfluencerService {
     }
 
     public void save(List<Influencer> influencers, String transactionId) {
-        repository.saveAll(influencers);
+        List<Influencer> influencersToSave = influencers.stream()
+                                                        .filter((influencer) -> !repository.existsByUserName(influencer.getUserName()))
+                                                        .collect(Collectors.toList());
+        repository.saveAll(influencersToSave);
 
         Transaction transaction = transactionService.findByTransactionId(transactionId);
         StatusControl statusControl = statusControlService.findByTransactionId(transaction.getTransactionId());
