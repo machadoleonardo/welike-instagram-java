@@ -27,8 +27,8 @@ public class TransactionService {
         return repository.findByTransactionId(transactionId);
     }
 
-    public void save(Transaction transaction) {
-        this.repository.save(transaction);
+    public Transaction save(Transaction transaction) {
+        return this.repository.save(transaction);
     }
 
 }

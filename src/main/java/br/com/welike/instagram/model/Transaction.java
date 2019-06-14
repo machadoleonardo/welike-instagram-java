@@ -40,11 +40,11 @@ public class Transaction {
 
     @JsonInclude
     @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(name = "transaction_influencer",
+    @JoinTable(name = "transaction_reference",
             joinColumns = @JoinColumn(
                     name = "transaction_id", referencedColumnName = "id"),
             inverseJoinColumns = @JoinColumn(
-                    name = "influencer_id", referencedColumnName = "id"))
-    private Set<Influencer> influencers;
+                    name = "reference_id", referencedColumnName = "id"))
+    private Set<Reference> references;
 
 }

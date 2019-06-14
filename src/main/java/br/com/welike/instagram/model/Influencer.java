@@ -52,4 +52,19 @@ public class Influencer implements Serializable {
 
     @Column
     private Integer followedBy;
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == this) {
+            return true;
+        }
+
+        if (!(o instanceof Influencer)) {
+            return false;
+        }
+
+        Influencer influencer = (Influencer) o;
+        return this.userName.equals(influencer.getUserName());
+    }
+
 }

@@ -9,7 +9,6 @@ import br.com.welike.instagram.service.ErrorService;
 import br.com.welike.instagram.service.InfluencerService;
 import br.com.welike.instagram.service.ScrapingService;
 import br.com.welike.instagram.service.TransactionService;
-import com.google.common.collect.Iterables;
 import org.openqa.selenium.*;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
@@ -19,10 +18,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
-import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 @Component
@@ -77,55 +74,60 @@ public class Scraper {
     }
 
     @Async
-    public void execute(String username, String transactionId, Integer minFlowers) {
+    public void execute(String username, Transaction transaction, Integer minFolowers) {
         try{
             WebDriverControl webDriverControl = beanFactory.getBean(WebDriverControl.class);
             webDriverControl.setWebDriverControl();
 
             webDriverControl.getDriver().get(HOST_INSTAGRAM);
-
-            List<Cookie> cookies = new ArrayList<>(0);
-
-            cookies.add(new Cookie("csrftoken", "9CYUp865ljjZ9wzi2bFcgzCvX5YToRTQ"));
-            cookies.add(new Cookie("ds_user_id", "8680661754"));
-            cookies.add(new Cookie("mcd", "3"));
-            cookies.add(new Cookie("mid", "XD96wQAEAAEE3tKTsRIWuSH1kdIV"));
-            cookies.add(new Cookie("rur", "ATN"));
-            cookies.add(new Cookie("sessionid", "8680661754%3Ays0O9VpkOq0hGU%3A10"));
-            cookies.add(new Cookie("shbid", "3166"));
-            cookies.add(new Cookie("shbts", "1555342831.1156552"));
-            cookies.add(new Cookie("urlgen", "\"{\\\"189.39.26.163\\\": 16735}:1hG3ik:GQfp_Z9WjLD0rzEdaJKnhKj4XHs\""));
-
-            for(Cookie cookie : cookies) {
-                webDriverControl.getDriver().manage().addCookie(cookie);
-            }
-
-            webDriverControl.getDriver().navigate().refresh();
-
-            Thread.sleep(5000);
-            if (scrapingService.exists(webDriverControl, LINK_BAIXAR_APLICATIVO)) {
-                webDriverControl.getDriver().findElement(By.xpath(LINK_NAO_BAIXAR_APLICATIVO)).click();
-            }
-            if (scrapingService.exists(webDriverControl, BUTTON_NAO_ATIVAR_NOTIFICACOES)) {
-                webDriverControl.getDriver().findElement(By.xpath(BUTTON_NAO_ATIVAR_NOTIFICACOES)).click();
-            }
+            setCookies(webDriverControl);
+            initialSteps(webDriverControl);
 
             findUser(webDriverControl, username);
             Thread.sleep(5000);
 
-            List<Influencer> seguidores = findSeguidores(webDriverControl, username, minFlowers);
+            List<Influencer> influencers = findSeguidores(webDriverControl, username, minFolowers);
 
             webDriverControl.getDriver().close();
 
-            influencerService.save(seguidores, transactionId);
+            scrapingService.saveInfluencers(influencers, transaction, username);
         } catch (Exception e) {
-            Transaction transaction = transactionService.findByTransactionId(transactionId);
             transaction.setStatus(TransactionEnum.ERRO.getDescription());
 
             transactionService.save(transaction);
             errorService.save(new Error(null, e.getMessage(), transaction));
             e.printStackTrace();
         }
+    }
+
+    private void initialSteps(WebDriverControl webDriverControl) throws InterruptedException {
+        Thread.sleep(5000);
+        if (scrapingService.exists(webDriverControl, LINK_BAIXAR_APLICATIVO)) {
+            webDriverControl.getDriver().findElement(By.xpath(LINK_NAO_BAIXAR_APLICATIVO)).click();
+        }
+        if (scrapingService.exists(webDriverControl, BUTTON_NAO_ATIVAR_NOTIFICACOES)) {
+            webDriverControl.getDriver().findElement(By.xpath(BUTTON_NAO_ATIVAR_NOTIFICACOES)).click();
+        }
+    }
+
+    private void setCookies(WebDriverControl webDriverControl) {
+        List<Cookie> cookies = new ArrayList<>(0);
+
+        cookies.add(new Cookie("csrftoken", "9CYUp865ljjZ9wzi2bFcgzCvX5YToRTQ"));
+        cookies.add(new Cookie("ds_user_id", "8680661754"));
+        cookies.add(new Cookie("mcd", "3"));
+        cookies.add(new Cookie("mid", "XD96wQAEAAEE3tKTsRIWuSH1kdIV"));
+        cookies.add(new Cookie("rur", "ATN"));
+        cookies.add(new Cookie("sessionid", "8680661754%3Ays0O9VpkOq0hGU%3A10"));
+        cookies.add(new Cookie("shbid", "3166"));
+        cookies.add(new Cookie("shbts", "1555342831.1156552"));
+        cookies.add(new Cookie("urlgen", "\"{\\\"189.39.26.163\\\": 16735}:1hG3ik:GQfp_Z9WjLD0rzEdaJKnhKj4XHs\""));
+
+        for(Cookie cookie : cookies) {
+            webDriverControl.getDriver().manage().addCookie(cookie);
+        }
+
+        webDriverControl.getDriver().navigate().refresh();
     }
 
     private List<Influencer> findSeguidores(WebDriverControl webDriverControl, String username, Integer minFlowers) throws InterruptedException {
