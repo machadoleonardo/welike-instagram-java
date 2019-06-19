@@ -4,6 +4,7 @@ import br.com.welike.instagram.Converter;
 import br.com.welike.instagram.enums.TransactionEnum;
 import br.com.welike.instagram.helper.Utils;
 import br.com.welike.instagram.model.Error;
+import br.com.welike.instagram.model.Reference;
 import br.com.welike.instagram.model.Transaction;
 import br.com.welike.instagram.response.TransactionResponse;
 import br.com.welike.instagram.service.TransactionService;
@@ -19,6 +20,7 @@ public class TransactionResponseConverter implements Converter<Transaction, Tran
 
     @Override
     public TransactionResponse encode(Transaction transaction) {
+        int totalInfluencers = 0;
         TransactionResponse response = new TransactionResponse();
 
         response.setStatus(transaction.getStatus());
@@ -28,8 +30,12 @@ public class TransactionResponseConverter implements Converter<Transaction, Tran
             return response;
         }
 
-        response.setInfluencers(new ArrayList<>(transaction.getInfluencers()));
-        response.setTotalInfluencers(transaction.getInfluencers().size());
+        for (Reference reference : transaction.getReferences()) {
+            totalInfluencers = reference.getInfluencers().size();
+        }
+
+        response.setReferences(new ArrayList<>(transaction.getReferences()));
+        response.setTotalInfluencers(totalInfluencers);
 
         return response;
     }

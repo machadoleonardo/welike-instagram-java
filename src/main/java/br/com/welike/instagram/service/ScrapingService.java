@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -23,12 +24,14 @@ public class ScrapingService<T> {
     private final InfluencerService influencerService;
     private final StatusControlService statusControlService;
     private final TransactionService transactionService;
+    private final ReferenceService referenceService;
 
     @Autowired
-    public ScrapingService(InfluencerService influencerService, StatusControlService statusControlService, TransactionService transactionService) {
+    public ScrapingService(InfluencerService influencerService, StatusControlService statusControlService, TransactionService transactionService, ReferenceService referenceService) {
         this.influencerService = influencerService;
         this.statusControlService = statusControlService;
         this.transactionService = transactionService;
+        this.referenceService = referenceService;
     }
 
     public boolean exists(WebDriverControl webDriverControl, String xpath) {
@@ -74,15 +77,13 @@ public class ScrapingService<T> {
 
     public void saveInfluencers(List<Influencer> influencers, Transaction transaction, String username) {
         List<Influencer> newInfluencers = influencers.stream()
-                .filter((influencer) -> !influencerService.existsByUserName(influencer.getUserName()))
+                .filter((influencer) -> Objects.isNull(influencer.getId()))
                 .collect(Collectors.toList());
         newInfluencers = influencerService.save(newInfluencers);
 
-        List<String> existsUsernameInfluencers = influencers.stream()
-                .filter((influencer) -> influencerService.existsByUserName(influencer.getUserName()))
-                .map(Influencer::getUserName)
+        List<Influencer> existsInfluencers = influencers.stream()
+                .filter((influencer) -> Objects.nonNull(influencer.getId()))
                 .collect(Collectors.toList());
-        List<Influencer> existsInfluencers = influencerService.findAllByUserNameIn(existsUsernameInfluencers);
 
         newInfluencers.addAll(existsInfluencers);
 
@@ -101,9 +102,10 @@ public class ScrapingService<T> {
 
         if (newScrapings.equals(statusControl.getTotalScrapings())) {
             transaction.setStatus(TransactionEnum.SUCESSO.getDescription());
+            transactionService.save(transaction);
         }
 
-        transactionService.save(transaction);
+        referenceService.save(reference);
         statusControlService.save(statusControl);
     }
 }

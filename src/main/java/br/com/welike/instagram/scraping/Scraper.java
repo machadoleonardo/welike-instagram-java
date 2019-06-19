@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -139,14 +140,26 @@ public class Scraper {
 
         List<String> userNameList = getElementUsuariosSeguindo(webDriverControl.getDriver());
 
-        for (String userNameOfList : userNameList) {
-            Influencer influencer = mapUserNameToInfluencer(webDriverControl, userNameOfList);
-            if (influencer.getFollows() > minFlowers) {
-                influencers.add(influencer);
+        List<Influencer> existsInfluencers = influencerService.findAllByUserNameIn(userNameList);
+        List<String> newInfluencers = filterNewInfluencers(userNameList);
+
+        if (!CollectionUtils.isEmpty(newInfluencers)) {
+            for (String newInfluencer : newInfluencers) {
+                Influencer influencer = mapUserNameToInfluencer(webDriverControl, newInfluencer);
+                if (influencer.getFollows() > minFlowers) {
+                    influencers.add(influencer);
+                }
             }
         }
 
+        influencers.addAll(existsInfluencers);
         return influencers;
+    }
+
+    private List<String> filterNewInfluencers(List<String> userNames) {
+        return userNames.stream()
+                .filter((userName) -> !influencerService.existsByUserName(userName))
+                .collect(Collectors.toList());
     }
 
     private List<String> getElementUsuariosSeguindo(WebDriver driver) throws InterruptedException {
@@ -156,11 +169,16 @@ public class Scraper {
         while (existsElements) {
             Thread.sleep(2000);
             List<WebElement> usuariosDaTela = driver.findElement(By.xpath(MODAL_SEGUINDO)).findElements(By.tagName("li"));
+            List<WebElement> userNames = driver.findElement(By.xpath(MODAL_SEGUINDO)).findElements(By.xpath("//a[contains(@class, 'notranslate')]"));
             existsElements = usuariosDaTela.size() != 0;
 
             if (existsElements) {
-                usuariosSeguindo.addAll(usuariosDaTela.stream().map(this::mapUsuariosSeguindoToUserName).collect(Collectors.toList()));
-                deleteElements(driver, usuariosDaTela);
+                usuariosSeguindo.addAll(userNames.stream().map(WebElement::getText).collect(Collectors.toList()));
+                try {
+                    deleteElements(driver, usuariosDaTela);
+                } catch(StaleElementReferenceException ex) {
+                    deleteElements(driver, usuariosDaTela);
+                }
                 Thread.sleep(1000);
                 moveMouse(driver, driver.findElement(By.xpath(DIALOG)));
             }

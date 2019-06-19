@@ -4,8 +4,11 @@ import br.com.welike.instagram.WebDriverControl;
 import br.com.welike.instagram.model.Influencer;
 import br.com.welike.instagram.service.ScrapingService;
 import org.openqa.selenium.By;
+import org.openqa.selenium.WebElement;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
 
 @Component
 public class UserScraping {
@@ -57,10 +60,15 @@ public class UserScraping {
     }
 
     private String getName() {
-        return webDriverControl.getDriver()
-                               .findElements(By.xpath(H1))
-                               .get(1)
-                               .getText();
+        List<WebElement> elements = webDriverControl.getDriver().findElements(By.xpath(H1));
+
+        // O PRIMEIRO H1 DA TELA SEMPRE É O USERNAME, O SEGUNDO É O NOME COMPLETP
+        // SE TIVER APENAS UM, SIGNIFICA QUE O PERFIL NÃO COLOCOU NOME COMPLETO
+        if (elements.size() > 1) {
+            return elements.get(1).getText();
+        } else {
+            return "";
+        }
     }
 
     private String getProfilePicture(String username) {
